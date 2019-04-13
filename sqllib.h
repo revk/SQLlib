@@ -19,6 +19,7 @@
 #define	sql_close		mysql_close
 #define	sql_num_fields		mysql_num_fields
 #define	sql_fetch_field		mysql_fetch_field
+#define	sql_fetch_fields	mysql_fetch_fields
 #define	sql_fetch_row		mysql_fetch_row
 #define	sql_list_fields		mysql_list_fields
 #define	sql_use_result		mysql_use_result
@@ -49,13 +50,13 @@ typedef sql_string_t sql_query_string;	// old name
 extern int sqldebug;	// Set +ve to print, -ve to not do updates but just print
 extern int sqlsyslogquery;
 extern int sqlsyslogerror;
-extern const char *sqlcnf;
 
 // Functions
 
-SQL *sql_real_connect(SQL *mysql, const char *host, const char *user, const char *passwd, const char *db, unsigned int port, const char *unix_socket, unsigned long client_flag,char safe);
-#define sql_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag) sql_real_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag,0)
-#define sql_safe_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag) sql_real_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag,1)
+SQL *sql_real_connect(SQL *mysql, const char *host, const char *user, const char *passwd, const char *db, unsigned int port, const char *unix_socket, unsigned long client_flag,char safe,const char *mycnf);
+#define sql_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag) sql_real_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag,0,NULL)
+#define sql_safe_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag) sql_real_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag,1,NULL)
+#define sql_cnf_connect(mysql,mycnf) sql_real_connect(mysql,NULL,NULL,NULL,NULL,0,NULL,0,1,mycnf)
 
 int sql_safe_select_db(SQL *sql,const char *db);	// Select database
 
