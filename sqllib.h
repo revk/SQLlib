@@ -4,6 +4,7 @@
 // Use entirely at your own risk. We accept no liability. If you don't like that - don't use it.
 
 #include <stdarg.h>
+
 #include <mysql.h>
 #include <mysqld_error.h>
 
