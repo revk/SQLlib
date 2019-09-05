@@ -74,7 +74,7 @@ SQL_RES *sql_safe_query_use_free (SQL * sql, char *);   // does query and fetch 
 SQL_RES *sql_safe_query_store_free (SQL * sql, char *);   // does query and fetch (store) result and aborts if error or no result, frees q
 SQL_RES *sql_query_use_free (SQL * sql, char *);        // does query and fetch result and returns 0 if no result, frees q
 SQL_RES *sql_query_store_free (SQL * sql, char *);        // does query and fetch (store) result and returns 0 if no result, frees q
-int sql_query_free (SQL * sql, char *); // sql query, frees q
+int __attribute__((warn_unused_result)) sql_query_free (SQL * sql, char *); // sql query, frees q
 
 void sql_vsprintf (sql_string_t *, const char *, va_list);        // Formatted print, append to query string
 void sql_sprintf (sql_string_t *, const char *, ...);     // Formatted print, append to query string
@@ -83,7 +83,7 @@ SQL_RES *sql_safe_query_use_s (SQL * sql, sql_string_t *);  // does query and fe
 SQL_RES *sql_safe_query_store_s (SQL * sql, sql_string_t *);  // does query and fetch result and aborts if error or no result, frees and clears query string
 SQL_RES *sql_query_use_s (SQL * sql, sql_string_t *);       // does query and fetch result and returns 0 if no result, frees and clears query string
 SQL_RES *sql_query_store_s (SQL * sql, sql_string_t *);       // does query and fetch result and returns 0 if no result, frees and clears query string
-int sql_query_s (SQL * sql, sql_string_t *);        // sql query, frees and clears query string
+int __attribute__((warn_unused_result)) sql_query_s (SQL * sql, sql_string_t *);        // sql query, frees and clears query string
 void sql_free_s (sql_string_t *);   // free a query that has been created
 
 int sql_colnum (SQL_RES *, const char *fieldname);      // Return row number for field name, -1 for not available. Case insensitive
@@ -96,3 +96,6 @@ time_t sql_time_z(const char *datetime,int utc);	// return time_t for SQL time
 #define sql_time(d) sql_time_z(d,0)
 #define sql_time_utc(d) sql_time_z(d,1)
 
+void sql_transation(SQL *sql); // Begin a transaction
+int __attribute__((warn_unused_result)) sql_commit(SQL*sql); // Commit a transaction
+void sql_safe_commit(SQL*sql); // Commit a transaction (fatal if error)

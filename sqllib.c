@@ -179,7 +179,7 @@ sql_safe_query (SQL * sql, char *q)
       return;
    }
    int e = sql_query (sql, q);
-   if (e == ER_LOCK_DEADLOCK)
+   if (e == ER_LOCK_DEADLOCK && strcasecmp (q, "COMMIT"))
       e = sql_query (sql, q);   // auto retry once for deadlock in "safe" queries...
    if (e)
    {
@@ -243,8 +243,7 @@ sql_query_store (SQL * sql, char *q)
 int
 sql_query (SQL * sql, char *q)
 {
-   struct timeval a = { }, b =
-   {
+   struct timeval a = { }, b = {
    };
    gettimeofday (&a, NULL);
    int r = sql_real_query (sql, q);
@@ -1005,4 +1004,20 @@ sql_time_z (const char *t, int utc)
    if (*t == 'Z' || utc)
       tm.tm_isdst = 0;          // utc - not really applied to SQL times...
    return mktime (&tm);
+}
+
+void
+sql_transation (SQL * sql)
+{
+   sql_safe_query (sql, "START TRANSACTION");
+}
+
+int __attribute__((warn_unused_result)) sql_commit (SQL * sql)
+{
+   return sql_query (sql, "COMMIT");
+}
+
+void sql_safe_commit (SQL * sql)
+{
+   return sql_safe_query (sql, "COMMIT");
 }
