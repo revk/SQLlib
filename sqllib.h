@@ -99,3 +99,4 @@ time_t sql_time_z(const char *datetime,int utc);	// return time_t for SQL time
 void sql_transation(SQL *sql); // Begin a transaction
 int __attribute__((warn_unused_result)) sql_commit(SQL*sql); // Commit a transaction
 void sql_safe_commit(SQL*sql); // Commit a transaction (fatal if error)
+void sql_safe_rollback(SQL*sql); // Rollback a transaction (fatal if error)

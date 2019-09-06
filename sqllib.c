@@ -1021,3 +1021,8 @@ void sql_safe_commit (SQL * sql)
 {
    return sql_safe_query (sql, "COMMIT");
 }
+
+void sql_safe_rollback (SQL * sql)
+{
+   return sql_safe_query (sql, "ROLLBACK");
+}
