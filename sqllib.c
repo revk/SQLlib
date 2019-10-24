@@ -620,7 +620,7 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
                if (flagalt)
                   s->query[s->ptr++] = '\'';
                if (!a)
-                  s->ptr += sprintf (s->query + s->ptr, "0");
+                  s->ptr += sprintf (s->query + s->ptr, "0000-00-00");
                else
                {
                   struct tm *t = gmtime (&a);
@@ -640,7 +640,7 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
                if (flagalt)
                   s->query[s->ptr++] = '\'';
                if (!a)
-                  s->ptr += sprintf (s->query + s->ptr, "0");
+                  s->ptr += sprintf (s->query + s->ptr, "0000-00-00");
                else
                {
                   struct tm *t = localtime (&a);
@@ -660,7 +660,7 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
                if (flagalt)
                   s->query[s->ptr++] = '\'';
                if (!a)
-                  s->ptr += sprintf (s->query + s->ptr, "0");
+                  s->ptr += sprintf (s->query + s->ptr, "0000-00-00");
                else
                {
                   struct tm *t = gmtime (&a);
@@ -1007,7 +1007,7 @@ sql_time_z (const char *t, int utc)
 }
 
 void
-sql_transation (SQL * sql)
+sql_transaction (SQL * sql)
 {
    sql_safe_query (sql, "START TRANSACTION");
 }
