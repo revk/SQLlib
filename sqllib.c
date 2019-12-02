@@ -431,6 +431,7 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
       char flagleft = 0;
       char flaglong = 0;
       char flaglonglong = 0;
+      char flaglongdouble = 0;
       int width = 0;
       int precision = -2;       // indicate not set
       // format modifiers
@@ -490,7 +491,11 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
       {
          flaglong = 1;
          f++;
-      } else if (strchr ("hLqjzt", *f))
+      } else if (*f == 'L')
+      {
+         flaglongdouble = 1;
+         f++;
+      } else if (strchr ("hqjzt", *f))
          f++;
 
       if (*f == '%')
@@ -713,8 +718,12 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
             else
                (void) va_arg (ap, int);
          } else if (strchr ("eEfFgGaA", *f))
-            (void) va_arg (ap, double);
-         else if (strchr ("s", *f))
+         {
+            if (flaglongdouble)
+               (void) va_arg (ap, long double);
+            else
+               (void) va_arg (ap, double);
+         } else if (strchr ("s", *f))
             (void) va_arg (ap, char *);
          else if (strchr ("p", *f))
             (void) va_arg (ap, void *);
@@ -1017,12 +1026,14 @@ int __attribute__((warn_unused_result)) sql_commit (SQL * sql)
    return sql_query (sql, "COMMIT");
 }
 
-void sql_safe_commit (SQL * sql)
+void
+sql_safe_commit (SQL * sql)
 {
    return sql_safe_query (sql, "COMMIT");
 }
 
-void sql_safe_rollback (SQL * sql)
+void
+sql_safe_rollback (SQL * sql)
 {
    return sql_safe_query (sql, "ROLLBACK");
 }
