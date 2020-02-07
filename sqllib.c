@@ -220,7 +220,8 @@ sql_safe_query_store (SQL * sql, char *q)
       if (!sqldebug)
          fprintf (stderr, "%s\n", q);
       errx (1, "SQL query no result");
-   }
+   } else if (sqldebug)
+      fprintf (stderr, "(%llu row%s)\n", sql_num_rows (r), sql_num_rows (r) == 1 ? "" : "s");
    return r;
 }
 
@@ -761,7 +762,7 @@ sql_colnum (SQL_RES * res, const char *fieldname)
    int n;
    if (!res || !res->fields)
       return -1;
-   for (n = 0; n < res->field_count && strcasecmp (res->fields[n].name, fieldname); n++);
+   for (n = 0; n < res->field_count && strcasecmp (res->fields[n].name ? : "", fieldname); n++);
    if (n < res->field_count)
       return n;
    return -1;
