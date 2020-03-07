@@ -31,6 +31,7 @@ sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *p
    const char *sslca = NULL;
    const char *sslcert = NULL;
    const char *sslkey = NULL;
+   const char *skipssl = NULL;
    if (!access (capem, R_OK))
       sslca = capem;            // Default CA certificate PEM file, if present we assume we should use SSL/TLS
    if (safe && sql)
@@ -59,57 +60,60 @@ sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *p
                warnx ("Cannot open %s", fn);
             else
             {
-               char l[1000];
-               while ((fgets (l, sizeof (l), f)))
+               char *l = NULL;
+               size_t lspace = 0;
+               ssize_t len = 0;
+               while ((len = getline (&l, &lspace, f)) > 0)
                   if (!strncasecmp (l, "[client]", 8))
                      break;
-               if (!feof (f))
-                  while ((fgets (l, sizeof (l), f)) && *l != '[')
-                  {             // read client lines
-                     char *e = l + strlen (l),
-                        *p;
-                     while (e > l && e[-1] < ' ')
-                        e--;
-                     *e = 0;
-                     for (p = l; isalnum (*p) || *p == '-'; p++);
-                     char *v = NULL;
-                     for (v = p; isspace (*v); v++);
-                     if (*v++ == '=')
-                        for (; isspace (*v); v++);
-                     else
-                        v = NULL;
-                     if (v && *v == '\'' && e > v && e[-1] == '\'')
-                     {          // Quoted
-                        v++;
-                        *--e = 0;
-                     }
-                     const char **set = NULL;
-                     if ((p - l) == 4 && !strncasecmp (l, "port", p - l))
-                     {
-                        if (!port && v)
-                           port = atoi (v);
-                     } else if ((p - l) == 4 && !strncasecmp (l, "user", p - l))
-                        set = &user;
-                     else if ((p - l) == 4 && !strncasecmp (l, "host", p - l))
-                        set = &host;
-                     else if ((p - l) == 8 && !strncasecmp (l, "password", p - l))
-                        set = &passwd;
-                     else if ((p - l) == 8 && !strncasecmp (l, "database", p - l))
-                        set = &db;
-                     else if ((p - l) == 6 && !strncasecmp (l, "ssl-ca", p - l))
-                        set = &sslca;
-                     else if ((p - l) == 8 && !strncasecmp (l, "ssl-cert", p - l))
-                        set = &sslcert;
-                     else if ((p - l) == 7 && !strncasecmp (l, "ssl-key", p - l))
-                        set = &sslkey;
-                     if (set && !*set && v)
-                     {
-                        if (!*v)
-                           *set = NULL; // Allow unset
-                        else
-                           *set = strdupa (v);
-                     }
+               while ((len = getline (&l, &lspace, f)) > 0 && *l != '[')
+               {                // read client lines
+                  char *e = l + len,
+                     *p;
+                  while (e > l && e[-1] < ' ')
+                     e--;
+                  *e = 0;
+                  for (p = l; isalnum (*p) || *p == '-'; p++);
+                  char *v = NULL;
+                  for (v = p; isspace (*v); v++);
+                  if (*v++ == '=')
+                     for (; isspace (*v); v++);
+                  else
+                     v = NULL;
+                  if (v && *v == '\'' && e > v && e[-1] == '\'')
+                  {             // Quoted
+                     v++;
+                     *--e = 0;
                   }
+                  const char **set = NULL;
+                  if ((p - l) == 4 && !strncasecmp (l, "port", p - l))
+                  {
+                     if (!port && v)
+                        port = atoi (v);
+                  } else if ((p - l) == 4 && !strncasecmp (l, "user", p - l))
+                     set = &user;
+                  else if ((p - l) == 4 && !strncasecmp (l, "host", p - l))
+                     set = &host;
+                  else if ((p - l) == 8 && !strncasecmp (l, "password", p - l))
+                     set = &passwd;
+                  else if ((p - l) == 8 && !strncasecmp (l, "database", p - l))
+                     set = &db;
+                  else if ((p - l) == 6 && !strncasecmp (l, "ssl-ca", p - l))
+                     set = &sslca;
+                  else if ((p - l) == 8 && !strncasecmp (l, "ssl-cert", p - l))
+                     set = &sslcert;
+                  else if ((p - l) == 7 && !strncasecmp (l, "ssl-key", p - l))
+                     set = &sslkey;
+                  if (set && !*set && v)
+                  {
+                     if (!*v)
+                        *set = NULL;    // Allow unset
+                     else
+                        *set = strdupa (v);
+                  }
+               }
+               if (l)
+                  free (l);
                fclose (f);
             }
          }
@@ -123,7 +127,7 @@ sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *p
    sql_options (sql, MYSQL_OPT_LOCAL_INFILE, &allow);   // Was previously allowed
    if (host && (!*host || !strcasecmp (host, "localhost")))
       host = NULL;              // A blank host as local connection
-   if (host && (sslkey || sslcert || sslca))
+   if (host && (sslkey || sslcert || sslca) && !skipssl)
    {                            // SSL (TLS) settings
 #if MYSQL_VERSION < 10
       errx (1, "No SSL available in this SQL library build");
