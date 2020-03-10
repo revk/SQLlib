@@ -104,7 +104,7 @@ sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *p
                      set = &sslcert;
                   else if ((p - l) == 7 && !strncasecmp (l, "ssl-key", p - l))
                      set = &sslkey;
-                  else if ((p - l) == 7 && !strncasecmp (l, "skip-ssl", p - l))
+                  else if ((p - l) == 8 && !strncasecmp (l, "skip-ssl", p - l))
                      set = &skipssl;
                   if (set && !*set && v)
                   {
