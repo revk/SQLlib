@@ -47,7 +47,7 @@ sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *p
       char *fn = (char *) mycnf;
       if (*fn == '~')
          if (asprintf (&fn, "%s%s", getenv ("MYSQL_HOME") ? : getenv ("HOME") ? : "/etc", fn + 1) < 0)
-            errx (1, "malloc at line %d",__LINE__);
+            errx (1, "malloc at line %d", __LINE__);
       struct stat s;
       if (!stat (fn, &s) && S_ISREG (s.st_mode))
       {
@@ -267,7 +267,7 @@ sql_query (SQL * sql, char *q)
    }
    if (sqldebug == 1)
    {
-      fprintf (stderr, "%lluus: %s\n", us, q);
+      fprintf (stderr, "%llu.%06llus: %s\n", us / 1000000LL, us % 1000000LL, q);
       if (r)
          fprintf (stderr, "SQL failed (%s): %s\n", sql->db, sql_error (sql));
    }
@@ -419,7 +419,7 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
    {
       // check enough space for anothing but a string espansion...
       if (s->ptr + 100 >= s->len && !(s->query = realloc (s->query, s->len += 1000)))
-         errx (1, "malloc at line %d",__LINE__);
+         errx (1, "malloc at line %d", __LINE__);
       if (*f != '%')
       {
          s->query[s->ptr++] = *f++;
@@ -553,7 +553,7 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
                if (width && l < width)
                   q += width - l;
                if (s->ptr + q + 100 >= s->len && !(s->query = realloc (s->query, s->len += q + 1000)))
-                  errx (1, "malloc at line %d",__LINE__);
+                  errx (1, "malloc at line %d", __LINE__);
                if (flagalt && *f == 's')
                   s->query[s->ptr++] = '\'';
                if (width && !flagleft && l < width)
