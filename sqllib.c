@@ -1022,10 +1022,11 @@ sql_time_z (const char *t, int utc)
       return 0;                 // sql time 0000-00-00 00:00:00 is returned as 0 as special case
    if (!Y || !M || !D || M > 12 || D > 31)
       return -1;                // mktime does not treat these as invalid - we should for SQL times
- struct tm tm = { tm_year: Y - 1900, tm_mon: M - 1, tm_mday: D, tm_hour: h, tm_min: m, tm_sec: s, tm_isdst:-1 };
+ struct tm tm = { tm_year: Y - 1900, tm_mon: M - 1, tm_mday: D, tm_hour: h, tm_min: m, tm_sec:s };
    if (*t == 'Z' || utc)
-      tm.tm_isdst = 0;          // utc - not really applied to SQL times...
-   return mktime (&tm);
+      return timegm (&tm);      // UTC
+   tm.tm_isdst = -1;            // Work it out
+   return mktime (&tm);         // local time
 }
 
 void
