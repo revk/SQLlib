@@ -164,9 +164,15 @@ sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *p
 int
 sql_safe_select_db (SQL * sql, const char *db)
 {
+   if (sqlsyslogquery >= 0)
+      syslog (sqlsyslogquery, "USE %s", db);
+   if (sqldebug)
+      fprintf (stderr, "USE %s\n", db);
    int e = sql_select_db (sql, db);
    if (e)
    {
+      if (sqlsyslogerror >= 0)
+         syslog (sqlsyslogerror, "USE %s", sql_error (sql));
       if (!sqldebug)
          fprintf (stderr, "SQL failed: %s\nUSE %s\n", sql_error (sql), db);
       errx (1, "SQL query failed");
