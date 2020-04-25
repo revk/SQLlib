@@ -1,7 +1,7 @@
 # SQLlib
 Wrapper / library for mysql, including sql query formatting, functions for safe operation that exit if unexpected failure, and functions to access results of queries by named field rather than row[n].
 
-The underlying mysql clinet functions need some help.
+The underlying mysql client functions need some help.
 
 This wrapper provides a range of functions - some just access to the mysql functions and some provide a lot of extra functionailty.
 

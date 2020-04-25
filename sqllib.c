@@ -440,6 +440,7 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
       char flagspace = 0;
       char flagzero = 0;
 #endif
+      char flagfree = 0;
       char flagalt = 0;
       char flagleft = 0;
       char flaglong = 0;
@@ -463,7 +464,9 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
             flagzero = 1;
          else
 #endif
-         if (*f == '#')
+         if (*f == '!')
+            flagfree = 1;
+         else if (*f == '#')
             flagalt = 1;
          else if (*f == '-')
             flagleft = 1;
@@ -600,6 +603,8 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
                }
                if (flagalt && *f == 's')
                   s->query[s->ptr++] = '\'';
+               if (flagfree)
+                  free (a);
             }
             break;
          case 'c':             // char
@@ -737,8 +742,11 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
             else
                (void) va_arg (ap, double);
          } else if (strchr ("s", *f))
-            (void) va_arg (ap, char *);
-         else if (strchr ("p", *f))
+         {
+            char *a = va_arg (ap, char *);
+            if (a && flagfree)
+               free (a);
+         } else if (strchr ("p", *f))
             (void) va_arg (ap, void *);
 #endif
       }
