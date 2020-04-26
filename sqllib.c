@@ -282,12 +282,23 @@ sql_query (SQL * sql, char *q)
 
 void
 sql_free_s (sql_string_t * q)
-{
+{                               // Free string
    if (q->query)
       free (q->query);
    q->query = NULL;
    q->len = 0;
    q->ptr = 0;
+}
+
+char
+sql_back_s (sql_string_t * q)
+{                               // Remove last character
+   if (!q || !q->query || !q->ptr)
+      return 0;
+   q->ptr--;
+   char r = q->query[q->ptr];
+   q->query[q->ptr] = 0;
+   return r;
 }
 
 // Freeing versions for use with malloc'd queries (e.g. from sql_printf...
