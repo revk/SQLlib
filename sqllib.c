@@ -614,7 +614,7 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
                }
                if (flagalt && *f == 's')
                   s->query[s->ptr++] = '\'';
-               if (flagfree)
+               if (flagfree && a)
                   free (a);
             }
             break;
