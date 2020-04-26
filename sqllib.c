@@ -558,6 +558,7 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
                      s->ptr += sprintf (s->query + s->ptr, "NULL");
                   break;
                }
+               char *aa = a;    // for freeing later
                int l = 0,       // work out length and quoted length
                   q = 0;
                while ((precision < 0 || l < precision) && a[l])
@@ -614,8 +615,8 @@ sql_vsprintf (sql_string_t * s, const char *f, va_list ap)
                }
                if (flagalt && *f == 's')
                   s->query[s->ptr++] = '\'';
-               if (flagfree && a)
-                  free (a);
+               if (flagfree)
+                  free (aa);
             }
             break;
          case 'c':             // char
