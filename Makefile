@@ -10,5 +10,5 @@ ifneq ($(wildcard /usr/bin/mariadb_config),)
 endif
 
 sqllib.o: sqllib.c
-	cc -O -c -o $@ $< -D_GNU_SOURCE -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER}
+	cc -g -O -c -o $@ $< -D_GNU_SOURCE -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER}
 
