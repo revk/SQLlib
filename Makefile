@@ -9,6 +9,6 @@ ifneq ($(wildcard /usr/bin/mariadb_config),)
 	SQLVER=$(shell mariadb_config --version | sed 'sx\..*xx')
 endif
 
-sqllib.o: sqllib.c
+sqllib.o: sqllib.c Makefile
 	cc -g -O -c -o $@ $< -D_GNU_SOURCE -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER}
 
