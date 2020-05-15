@@ -54,8 +54,7 @@ extern int sqlsyslogerror;
 
 // Functions
 
-SQL *sql_real_connect (SQL * mysql, const char *host, const char *user, const char *passwd, const char *db, unsigned int port,
-                       const char *unix_socket, unsigned long client_flag, char safe, const char *mycnf);
+SQL *sql_real_connect (SQL * mysql, const char *host, const char *user, const char *passwd, const char *db, unsigned int port, const char *unix_socket, unsigned long client_flag, char safe, const char *mycnf);
 #define sql_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag) sql_real_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag,0,NULL)
 #define sql_safe_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag) sql_real_connect(mysql,host,user,passwd,db,port,unix_socket,client_flag,1,NULL)
 #define sql_cnf_connect(mysql,mycnf) sql_real_connect(mysql,NULL,NULL,NULL,NULL,0,NULL,0,1,mycnf)
@@ -89,6 +88,7 @@ void sql_free_s (sql_string_t *);       // free a query that has been created
 char sql_back_s (sql_string_t *);       // Remove last character (and return it)
 
 int sql_colnum (SQL_RES *, const char *fieldname);      // Return row number for field name, -1 for not available. Case insensitive
+const char *sql_colname (SQL_RES * res, int c); // Name of column by number
 char *sql_col (SQL_RES *, const char *fieldname);       // Return current row value for field name, NULL for not available. Case insensitive
 SQL_FIELD *sql_col_format (SQL_RES *, const char *fieldname);   // Return data type for column by name. Case insensitive
 #define	sql_colz(r,f)	(sql_col(r,f)?:"")      // Non null return sql_col

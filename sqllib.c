@@ -25,8 +25,7 @@ const char *sqlcnf = "~/.my.cnf";       // Default
 const char *capem = "/etc/mysql/cacert.pem";
 
 SQL *
-sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *passwd, const char *db,
-                  unsigned int port, const char *unix_socket, unsigned long client_flag, char safe, const char *mycnf)
+sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *passwd, const char *db, unsigned int port, const char *unix_socket, unsigned long client_flag, char safe, const char *mycnf)
 {                               // Connect but check config file
    const char *sslca = NULL;
    const char *sslcert = NULL;
@@ -261,8 +260,7 @@ sql_query (SQL * sql, char *q)
    gettimeofday (&a, NULL);
    int r = sql_real_query (sql, q);
    gettimeofday (&b, NULL);
-   long long us =
-      ((long long) b.tv_sec * 1000000LL + (long long) b.tv_usec) - ((long long) a.tv_sec * 1000000LL + (long long) a.tv_usec);
+   long long us = ((long long) b.tv_sec * 1000000LL + (long long) b.tv_usec) - ((long long) a.tv_sec * 1000000LL + (long long) a.tv_usec);
    if (sqlsyslogquery >= 0)
       syslog (sqlsyslogquery, "%lluus: %s", us, q);
    if (sqlsyslogerror >= 0 && r)
@@ -800,6 +798,12 @@ sql_colnum (SQL_RES * res, const char *fieldname)
    return -1;
 }
 
+const char *
+sql_colname (SQL_RES * res, int c)
+{
+   return res->fields[c].name;
+}
+
 char *
 sql_col (SQL_RES * res, const char *fieldname)
 {                               // Return current row value for field name, NULL for not available. Case insensitive
@@ -946,8 +950,7 @@ sqlprintf (char *q, char *f, ...)       // DEPRECATED
                {
                   struct tm *tm = gmtime (&t);
 
-                  sprintf (q, "%04d%02d%02d%02d%02d%02d", tm->tm_year + 1900,
-                           tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+                  sprintf (q, "%04d%02d%02d%02d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
                   q += strlen (q);
                } else
                   *q++ = '0';
