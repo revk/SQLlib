@@ -155,7 +155,10 @@ SQL *sql_real_connect(MYSQL * sql, const char *host, const char *user, const cha
       else if (sqldebug)
          fprintf(stderr, "SQL error accessing '%s': %s\n", host ? : "(local)", sql_error(sql));
    } else
-      sql_options(s, MYSQL_SET_CHARSET_NAME, "utf8mb4");   // Seems to be needed after connect?
+   {
+      //sql_options(s, MYSQL_SET_CHARSET_NAME, "utf8mb4");   // Seems to be needed after connect?
+      sql_set_character_set(s, "utf8mb4");
+   }
    return s;
 }
 

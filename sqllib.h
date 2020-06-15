@@ -35,6 +35,7 @@
 #define	sql_select_db		mysql_select_db
 #define	sql_stat		mysql_stat
 #define	sql_ping		mysql_ping
+#define	sql_set_character_set	mysql_set_character_set
 
 #define	SQL_OPT_RECONNECT	MYSQL_OPT_RECONNECT
 
