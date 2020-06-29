@@ -156,8 +156,8 @@ SQL *sql_real_connect(MYSQL * sql, const char *host, const char *user, const cha
          fprintf(stderr, "SQL error accessing '%s': %s\n", host ? : "(local)", sql_error(sql));
    } else
    {
-      sql_options(s, MYSQL_SET_CHARSET_NAME, "utf8mb4");   // Seems to be needed after connect?
-      sql_set_character_set(s, "utf8mb4"); // Seems needed fro mariadb
+      sql_options(s, MYSQL_SET_CHARSET_NAME, "utf8mb4");        // Seems to be needed after connect?
+      sql_set_character_set(s, "utf8mb4");      // Seems needed fro mariadb
    }
    return s;
 }
@@ -639,10 +639,26 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
                {
                   s->query[s->ptr++] = '\\';
                   s->query[s->ptr++] = 'n';
+               } else if (flagalt && a == '\b')
+               {
+                  s->query[s->ptr++] = '\\';
+                  s->query[s->ptr++] = 'b';
+               } else if (flagalt && a == '\r')
+               {
+                  s->query[s->ptr++] = '\\';
+                  s->query[s->ptr++] = 'r';
+               } else if (flagalt && a == '\t')
+               {
+                  s->query[s->ptr++] = '\\';
+                  s->query[s->ptr++] = 't';
+               } else if (flagalt && a == 26)
+               {
+                  s->query[s->ptr++] = '\\';
+                  s->query[s->ptr++] = 'Z';
                } else
                {
-                  if (flagalt && a == '\'')
-                     s->query[s->ptr++] = '\'';
+                  if (flagalt && strchr("\\\"'", a))
+                     s->query[s->ptr++] = '\\';
                   s->query[s->ptr++] = a;
                }
                if (flagalt)
