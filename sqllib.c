@@ -151,7 +151,7 @@ SQL *sql_real_connect(MYSQL * sql, const char *host, const char *user, const cha
       if (sqlsyslogerror >= 0)
          syslog(sqlsyslogerror, "%s", sql_error(sql));
       if (safe)
-         errx(3, "SQL error accessing '%s': %s", host ? : "(local)", sql_error(sql));
+         errx(200, "SQL error accessing '%s': %s", host ? : "(local)", sql_error(sql));
       else if (sqldebug)
          fprintf(stderr, "SQL error accessing '%s': %s\n", host ? : "(local)", sql_error(sql));
    } else
