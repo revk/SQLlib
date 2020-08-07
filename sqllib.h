@@ -66,7 +66,7 @@ SQL_RES *sql_safe_query_use(SQL * sql, char *q);        // does query and fetch 
 SQL_RES *sql_safe_query_store(SQL * sql, char *q);      // does query and fetch result and aborts if error or no result
 SQL_RES *sql_query_use(SQL * sql, char *q);     // does query and fetch result and returns 0 if no result
 SQL_RES *sql_query_store(SQL * sql, char *q);   // does query and fetch (store) result and returns 0 if no result
-int sql_query(SQL * sql, char *q);      // sql queru
+int __attribute__((warn_unused_result)) sql_query(SQL * sql, char *q);      // sql query
 
 char *sql_printf(char *, ...);  // Formatted print, return malloc'd string
 void sql_safe_query_free(SQL * sql, char *);    // does query and aborts if error, frees q
