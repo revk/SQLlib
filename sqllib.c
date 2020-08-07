@@ -45,7 +45,7 @@ SQL *sql_real_connect(MYSQL * sql, const char *host, const char *user, const cha
       char *fn = (char *) mycnf;
       if (*fn == '~')
          if (asprintf(&fn, "%s%s", getenv("MYSQL_HOME") ? : getenv("HOME") ? : "/etc", fn + 1) < 0)
-            errx(1, "malloc at line %d", __LINE__);
+            errx(255, "malloc at line %d", __LINE__);
       struct stat s;
       if (!stat(fn, &s) && S_ISREG(s.st_mode))
       {
@@ -130,7 +130,7 @@ SQL *sql_real_connect(MYSQL * sql, const char *host, const char *user, const cha
    if (host && (sslkey || sslcert || sslca) && !skipssl)
    {                            // SSL (TLS) settings
 #if MYSQL_VERSION < 10
-      errx(1, "No SSL available in this SQL library build");
+      errx(255, "No SSL available in this SQL library build");
 #else
       if (sslkey)
          sql_options(sql, MYSQL_OPT_SSL_KEY, sslkey);
@@ -175,7 +175,7 @@ int sql_safe_select_db(SQL * sql, const char *db)
          syslog(sqlsyslogerror, "USE %s", sql_error(sql));
       if (!sqldebug)
          fprintf(stderr, "SQL failed: %s\nUSE %s\n", sql_error(sql), db);
-      errx(1, "SQL query failed");
+      errx(201, "SQL query failed");
    }
    return e;
 }
@@ -196,7 +196,7 @@ void sql_safe_query(SQL * sql, char *q)
    {
       if (!sqldebug)
          fprintf(stderr, "SQL failed (%s): %s\n%s\n", sql->db, sql_error(sql), q);
-      errx(1, "SQL query failed");
+      errx(201, "SQL query failed");
    }
 }
 
@@ -209,7 +209,7 @@ SQL_RES *sql_safe_query_use(SQL * sql, char *q)
    {
       if (!sqldebug)
          fprintf(stderr, "%s\n", q);
-      errx(1, "SQL query no result");
+      errx(202, "SQL query no result");
    }
    return r;
 }
@@ -221,14 +221,14 @@ SQL_RES *sql_safe_query_store(SQL * sql, char *q)
    {
       if (!sqldebug)
          fprintf(stderr, "SQL failed (%s): %s\n%s\n", sql->db, sql_error(sql), q);
-      errx(1, "SQL query failed");
+      errx(201, "SQL query failed");
    }
    r = sql_store_result(sql);
    if (!r)
    {
       if (!sqldebug)
          fprintf(stderr, "%s\n", q);
-      errx(1, "SQL query no result");
+      errx(202, "SQL query no result");
    } else if (sqldebug)
       fprintf(stderr, "(%llu row%s)\n", sql_num_rows(r), sql_num_rows(r) == 1 ? "" : "s");
    return r;
@@ -436,7 +436,7 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
    {
       // check enough space for anothing but a string espansion...
       if (s->ptr + 100 >= s->len && !(s->query = realloc(s->query, s->len += 1000)))
-         errx(1, "malloc at line %d", __LINE__);
+         errx(255, "malloc at line %d", __LINE__);
       if (*f != '%')
       {
          s->query[s->ptr++] = *f++;
@@ -574,7 +574,7 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
                if (width && l < width)
                   q += width - l;
                if (s->ptr + q + 100 >= s->len && !(s->query = realloc(s->query, s->len += q + 1000)))
-                  errx(1, "malloc at line %d", __LINE__);
+                  errx(255, "malloc at line %d", __LINE__);
                if (flagalt && *f == 's')
                   s->query[s->ptr++] = '\'';
                if (width && !flagleft && l < width)
