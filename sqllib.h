@@ -66,7 +66,7 @@ SQL_RES *sql_safe_query_use(SQL * sql, char *q);        // does query and fetch 
 SQL_RES *sql_safe_query_store(SQL * sql, char *q);      // does query and fetch result and aborts if error or no result
 SQL_RES *sql_query_use(SQL * sql, char *q);     // does query and fetch result and returns 0 if no result
 SQL_RES *sql_query_store(SQL * sql, char *q);   // does query and fetch (store) result and returns 0 if no result
-int __attribute__((warn_unused_result)) sql_query(SQL * sql, char *q);      // sql query
+int __attribute__((warn_unused_result)) sql_query(SQL * sql, char *q);  // sql query
 
 char *sql_printf(char *, ...);  // Formatted print, return malloc'd string
 void sql_safe_query_free(SQL * sql, char *);    // does query and aborts if error, frees q
@@ -105,3 +105,5 @@ void sql_transaction(SQL * sql);        // Begin a transaction
 int __attribute__((warn_unused_result)) sql_commit(SQL * sql);  // Commit a transaction
 void sql_safe_commit(SQL * sql);        // Commit a transaction (fatal if error)
 void sql_safe_rollback(SQL * sql);      // Rollback a transaction (fatal if error)
+
+int sql_field_len(MYSQL_FIELD *);

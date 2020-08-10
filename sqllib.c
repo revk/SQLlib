@@ -1080,3 +1080,12 @@ void sql_safe_rollback(SQL * sql)
 {
    return sql_safe_query(sql, "ROLLBACK");
 }
+
+int sql_field_len(MYSQL_FIELD * f)
+{                               // Allow for common charset logic
+   if (f->charsetnr == 45)
+      return f->length / 4;
+   if (f->charsetnr == 33)
+      return f->length / 3;
+   return f->length;
+}
