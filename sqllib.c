@@ -190,8 +190,10 @@ void sql_safe_query(SQL * sql, char *q)
       return;
    }
    int e = sql_query(sql, q);
-   if (e == ER_LOCK_DEADLOCK && strcasecmp(q, "COMMIT"))
-      e = sql_query(sql, q);    // auto retry once for deadlock in "safe" queries...
+   if (e == ER_LOCK_DEADLOCK)   // && strcasecmp(q, "COMMIT"))
+      e = sql_query(sql, q);    // auto retry once for deadlock
+   if (e == ER_LOCK_DEADLOCK)   // && strcasecmp(q, "COMMIT"))
+      e = sql_query(sql, q);    // auto retry once for deadlock
    if (e)
    {
       if (!sqldebug)
