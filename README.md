@@ -10,7 +10,7 @@ The "free" option on these frees the argument, and is used with sql_printf() whi
 
 This allows things like
 
-sql_safe_query_free(&sql,sql_printf("INSERT INTO `test` SET `f1`=%#s",stringvar));
+sql_safe_query_free(&sql,sql_printf("INSERT INTO \`test\` SET \`f1\`=%#s",stringvar));
 
 This would create a queries, properly quoting and escaping the value of stringvar, even using NULL if it is null, and then free the allocated string. If there is an error the program exists.
 
