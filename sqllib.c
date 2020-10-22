@@ -630,11 +630,6 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
                   a = va_arg(ap, long long);
                else
                   a = va_arg(ap, int);
-               if (!a)
-               {
-                  s->ptr += sprintf(s->query + s->ptr, "NULL");
-                  break;
-               }
                if (flagalt)
                   s->query[s->ptr++] = '\'';
                if (flagalt && a == '\n')
@@ -657,7 +652,7 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
                {
                   s->query[s->ptr++] = '\\';
                   s->query[s->ptr++] = 'Z';
-               } else
+               } else if (a)
                {
                   if (flagalt && strchr("\\\"'", a))
                      s->query[s->ptr++] = '\\';
