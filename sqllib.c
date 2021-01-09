@@ -121,7 +121,7 @@ SQL *sql_real_connect(MYSQL * sql, const char *host, const char *user, const cha
       if (fn != mycnf)
          free(fn);
    }
-   my_bool reconnect = 1;
+   _Bool reconnect = 1;
    sql_options(sql, MYSQL_OPT_RECONNECT, &reconnect);
    int allow = 1;
    sql_options(sql, MYSQL_OPT_LOCAL_INFILE, &allow);    // Was previously allowed
