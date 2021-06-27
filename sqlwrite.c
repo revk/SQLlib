@@ -80,8 +80,7 @@ main (int argc, const char *argv[])
       {"sql-table", 't', POPT_ARG_STRING, &sqltable, 0, "SQL table", "table"},
       {"show-diff", 's', POPT_ARG_NONE, &showdiff, 0, "Show diff, don't update",
        0},
-      {"only-listed", 'o', POPT_ARG_NONE, &onlylisted, 0,
-       "Only updated fields listed on command line", 0},
+      {"only-listed", 'o', POPT_ARG_NONE, &onlylisted, 0, "Only updated fields listed on command line", 0},
       {"quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Quiet", 0},
       {"debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", 0},
       POPT_AUTOHELP {NULL, 0, 0, NULL, 0}
@@ -258,6 +257,8 @@ main (int argc, const char *argv[])
          }
          if (!e && n < valuen)
             e = field[f].def;
+	 if(field[f].type == FIELD_TYPE_ENUM)
+		 for(char *p=e;*p;p++)if(*p=='\t')*p=',';
          sql_sprintf (&query, "%c", s);
          s = ',';
          if (row)
