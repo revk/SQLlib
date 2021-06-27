@@ -48,6 +48,7 @@ int main(int argc, const char *argv[])
    int quiet = 0;
    int showdiff = 0;
    int onlylisted = 0;
+   int nulllisted = 0;
    const char *sqlhost = NULL,
        *sqldatabase = NULL,
        *sqltable = NULL,
@@ -79,6 +80,7 @@ int main(int argc, const char *argv[])
       { "show-diff", 's', POPT_ARG_NONE, &showdiff, 0, "Show diff, don't update",
        0 },
       { "only-listed", 'o', POPT_ARG_NONE, &onlylisted, 0, "Only updated fields listed on command line", 0 },
+      { "null-listed", 'n', POPT_ARG_NONE, &nulllisted, 0, "Null updated fields listed on command line if missing", 0 },
       { "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Quiet", 0 },
       { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", 0 },
       POPT_AUTOHELP { NULL, 0, 0, NULL, 0 }
@@ -221,7 +223,7 @@ int main(int argc, const char *argv[])
    {
       for (n = 0; n < valuen && strcmp(values[n], field[f].name); n++);
       e = getenv(field[f].name);
-      if (!e && onlylisted)
+      if (!e && !nulllisted && onlylisted)
          continue;
       if (n < valuen || (!onlylisted && e))
       {
@@ -251,7 +253,7 @@ int main(int argc, const char *argv[])
          if (field[f].flags & SET_FLAG)
             for (char *p = e; *p; p++)
                if (*p == '\t')
-                  *p = ','; // SET, so comma not tab
+                  *p = ',';     // SET, so comma not tab
          sql_sprintf(&query, "%c", s);
          s = ',';
          if (row)
