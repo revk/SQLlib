@@ -248,7 +248,7 @@ int main(int argc, const char *argv[])
                p++;
             }
          }
-         if (!e && n < valuen)
+         if (!e && n < valuen&&((field[f].def&&*field[f].def)||(field[f].flags&NOT_NULL_FLAG)))
             e = field[f].def;
          if (field[f].flags & SET_FLAG)
             for (char *p = e; *p; p++)
