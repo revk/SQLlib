@@ -248,10 +248,10 @@ int main(int argc, const char *argv[])
          }
          if (!e && n < valuen)
             e = field[f].def;
-         if (field[f].type == FIELD_TYPE_ENUM || (field[f].flags & ENUM_FLAG))
+         if (field[f].flags & SET_FLAG)
             for (char *p = e; *p; p++)
                if (*p == '\t')
-                  *p = ',';
+                  *p = ','; // SET, so comma not tab
          sql_sprintf(&query, "%c", s);
          s = ',';
          if (row)
