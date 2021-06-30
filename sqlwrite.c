@@ -248,7 +248,7 @@ int main(int argc, const char *argv[])
                p++;
             }
          }
-         if (!e && n < valuen&&((field[f].def&&*field[f].def)||(field[f].flags&NOT_NULL_FLAG)))
+         if (!e && n < valuen && ((field[f].def && *field[f].def) || (field[f].flags & NOT_NULL_FLAG)))
             e = field[f].def;
          if (field[f].flags & SET_FLAG)
             for (char *p = e; *p; p++)
@@ -261,7 +261,7 @@ int main(int argc, const char *argv[])
             sql_sprintf(&query, "`%#S`=", field[f].name);
             if (showdiff && strcmp(e ? : "", row[f] ? : ""))
             {
-               if (!((!e || !*e) && (!row[f] || !strncmp(row[f], "0000", 4)) && (field[f].type == FIELD_TYPE_DATE || field[f].type == MYSQL_TYPE_NEWDATE || field[f].type == FIELD_TYPE_TIMESTAMP || field[f].type == FIELD_TYPE_DATETIME)))
+               if (!((!e || !*e) && (!row[f] || !strncmp(row[f], "0000", 4)) && (field[f].type == FIELD_TYPE_DATE || field[f].type == MYSQL_TYPE_NEWDATE || field[f].type == FIELD_TYPE_TIMESTAMP || field[f].type == FIELD_TYPE_DATETIME || field[f].type == FIELD_TYPE_TIME)))
                {
                   if (showdiff++ == 1)
                      printf("Change");
@@ -295,6 +295,8 @@ int main(int argc, const char *argv[])
                sql_sprintf(&query, "'");
             } else if (!*e && (field[f].type == FIELD_TYPE_DATE || field[f].type == MYSQL_TYPE_NEWDATE || field[f].type == FIELD_TYPE_TIMESTAMP || field[f].type == FIELD_TYPE_DATETIME))
                sql_sprintf(&query, "%#s", "0000-00-00");
+            else if (!*e && field[f].type == FIELD_TYPE_TIME)
+               sql_sprintf(&query, "%#s", "00:00:00");
             else
                sql_sprintf(&query, "%#s", e);
          }
