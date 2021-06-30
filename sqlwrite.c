@@ -301,6 +301,10 @@ int main(int argc, const char *argv[])
                sql_sprintf(&query, "%#U", sql_time(e));
             else if (!*e && field[f].type == FIELD_TYPE_TIME)
                sql_sprintf(&query, "%#s", "00:00:00");
+            else if (!*e
+                     && (field[f].type == FIELD_TYPE_NEWDECIMAL || field[f].type == FIELD_TYPE_DECIMAL || field[f].type == FIELD_TYPE_TINY || field[f].type == FIELD_TYPE_SHORT || field[f].type == FIELD_TYPE_LONG || field[f].type == FIELD_TYPE_DOUBLE || field[f].type == FIELD_TYPE_LONGLONG
+                         || field[f].type == FIELD_TYPE_INT24))
+               sql_sprintf(&query, "%#s", "0");
             else
                sql_sprintf(&query, "%#s", e);
          }
