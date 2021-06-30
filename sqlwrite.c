@@ -293,8 +293,10 @@ int main(int argc, const char *argv[])
                while (*e && (isdigit(*e) || *e == ':' || *e == ' '))
                   sql_sprintf(&query, "%c", *e++);
                sql_sprintf(&query, "'");
-            } else if (!*e && (field[f].type == FIELD_TYPE_DATE || field[f].type == MYSQL_TYPE_NEWDATE || field[f].type == FIELD_TYPE_TIMESTAMP || field[f].type == FIELD_TYPE_DATETIME))
-               sql_sprintf(&query, "%#s", "0000-00-00");
+            } else if (field[f].type == FIELD_TYPE_DATE || field[f].type == MYSQL_TYPE_NEWDATE)
+		    sql_sprintf(&query,"%#10U",sql_time(e));
+	    else if(field[f].type == FIELD_TYPE_TIMESTAMP || field[f].type == FIELD_TYPE_DATETIME)
+		    sql_sprintf(&query,"%#U",sql_time(e));
             else if (!*e && field[f].type == FIELD_TYPE_TIME)
                sql_sprintf(&query, "%#s", "00:00:00");
             else
