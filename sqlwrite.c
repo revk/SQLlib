@@ -56,6 +56,7 @@ int main(int argc, const char *argv[])
        *sqlpass = NULL,
        *sqlconf = NULL;
    unsigned int sqlport = 0;
+   int count = 0;
    int n,
     f;
    char *e,
@@ -81,6 +82,7 @@ int main(int argc, const char *argv[])
        0 },
       { "only-listed", 'o', POPT_ARG_NONE, &onlylisted, 0, "Only updated fields listed on command line", 0 },
       { "null-listed", 'n', POPT_ARG_NONE, &nulllisted, 0, "Null updated fields listed on command line if missing", 0 },
+      { "count", 'c', POPT_ARG_NONE, &count, 0, "Report change count (normally just $status)", 0 },
       { "quiet", 'q', POPT_ARG_NONE, &quiet, 0, "Quiet", 0 },
       { "debug", 'v', POPT_ARG_NONE, &sqldebug, 0, "Debug", 0 },
       POPT_AUTOHELP { NULL, 0, 0, NULL, 0 }
@@ -294,9 +296,9 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&query, "%c", *e++);
                sql_sprintf(&query, "'");
             } else if (field[f].type == FIELD_TYPE_DATE || field[f].type == MYSQL_TYPE_NEWDATE)
-		    sql_sprintf(&query,"%#10U",sql_time(e));
-	    else if(field[f].type == FIELD_TYPE_TIMESTAMP || field[f].type == FIELD_TYPE_DATETIME)
-		    sql_sprintf(&query,"%#U",sql_time(e));
+               sql_sprintf(&query, "%#10U", sql_time(e));
+            else if (field[f].type == FIELD_TYPE_TIMESTAMP || field[f].type == FIELD_TYPE_DATETIME)
+               sql_sprintf(&query, "%#U", sql_time(e));
             else if (!*e && field[f].type == FIELD_TYPE_TIME)
                sql_sprintf(&query, "%#s", "00:00:00");
             else
@@ -311,13 +313,19 @@ int main(int argc, const char *argv[])
    sql_free_result(res);
    if (s == ',' && !showdiff)
       sql_safe_query_s(&sql, &query);
+   int changed = sql_affected_rows(&sql);
    if (!quiet)
    {
-      int id = sql_insert_id(&sql);
-      if (id)
-         printf("%d", id);
+      if (count)
+         printf("%d", changed);
+      else
+      {
+         int id = sql_insert_id(&sql);
+         if (id)
+            printf("%d", id);
+      }
    }
    sql_safe_commit(&sql);
    sql_close(&sql);
-   return 0;
+   return changed;
 }
