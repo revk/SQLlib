@@ -296,7 +296,7 @@ int main(int argc, const char *argv[])
                   sql_sprintf(&query, "%c", *e++);
                sql_sprintf(&query, "'");
             } else if (field[f].type == FIELD_TYPE_DATE || field[f].type == MYSQL_TYPE_NEWDATE)
-               sql_sprintf(&query, "%#10U", sql_time(e));
+               sql_sprintf(&query, "%#10U", sql_time_utc(e));
             else if (field[f].type == FIELD_TYPE_TIMESTAMP || field[f].type == FIELD_TYPE_DATETIME)
                sql_sprintf(&query, "%#U", sql_time_utc(e));
             else if (!*e && field[f].type == FIELD_TYPE_TIME)
