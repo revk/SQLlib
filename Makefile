@@ -10,11 +10,11 @@ ifneq ($(wildcard /usr/bin/mariadb_config),)
 endif
 all: sqllib.o sql sqlwrite
 
-sqllib.o: sqllib.c sqllib.h
+sqllib.o: sqllib.c sqllib.h Makefile
 	gcc -g -O -c -o $@ $< -fPIC -D_GNU_SOURCE -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER}
 
 sql: sql.c sqllib.o sqllib.h
-	gcc -g -O -o $@ $< -fPIC -D_GNU_SOURCE ${SQLINC} ${SQLLIB} -lpopt sqllib.o
+	gcc -g -O -o $@ $< -fPIC -D_GNU_SOURCE ${SQLINC} ${SQLLIB} -lpopt sqllib.o --std=gnu99
 
 sqlwrite: sqlwrite.c sqllib.o sqllib.h
-	gcc -g -O -o $@ $< -fPIC -D_GNU_SOURCE ${SQLINC} ${SQLLIB} -lpopt sqllib.o
+	gcc -g -O -o $@ $< -fPIC -D_GNU_SOURCE ${SQLINC} ${SQLLIB} -lpopt sqllib.o --std=gnu99
