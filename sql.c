@@ -146,8 +146,13 @@ void dosql(const char *origquery)
             add(*i++);
             continue;
          }
-         if (!quote && *i == ';')
-            errx(5, "Multiple command");
+         if (!quote)
+         {                      // Look for stuff that is common in injection attacks
+            if (*i == ';')
+               errx(5, "Multiple command");
+            if (*i == '#' || (*i == '/' && i[1] == '*') || (*i == '-' && i[1] == '-' && (!i[2] || isspace(i[2]))))
+               errx(5, "Comment in SQL - don't do that");
+         }
          if (*i == '$')
          {                      // More general case
             char was;
