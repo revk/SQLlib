@@ -10,7 +10,7 @@ ifneq ($(wildcard /usr/bin/mariadb_config),)
 endif
 OPTS=-D_GNU_SOURCE --std=gnu99 -g -Wall -funsigned-char -lpopt
 
-all: sqllib.o sqlexpand.o sql sqlwrite sqledit
+all: sqllib.o sqlexpand.o sql sqlwrite sqledit sqlexpand
 
 sqllib.o: sqllib.c sqllib.h Makefile
 	gcc -g -O -c -o $@ $< -fPIC ${OPTS} -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER}
