@@ -12,16 +12,15 @@
 	<tr><td><tt>-</tt></td><td>Replace all <tt>'</tt>, <tt>"</tt> or <tt>`</tt> with <tt>_</tt> (underscore).</td></tr>
 	<tr><td><tt>,</tt></td><td>Add quotes around this if not in quotes, and add <tt>","</tt> at each comma or tab found in the expansion.</td></tr>
 	<tr><td><tt>+</tt></td><td>URL encode the value.</td></tr>
-	<tr><td><tt>#</tt></td><td>Made MD5 of value, use <tt>##</tt> for SHA1.</td></tr>
+	<tr><td><tt>#</tt></td><td>Made MD5 of value, use <tt>##</tt> for SHA1. Value is hex (lower case).</td></tr>
+	<tr><td><tt>=</tt></td><td>Base64 encode the value. If used with <tt>#</tt> or <tt>##</tt> then this is base64 of the binary hash instead of hex.</td></tr>
 	<tr><td><tt>%</tt></td><td>Trust this variable <b>(use with care)</b> so allowing expansion outside quotes as is with no escaping.</td></tr>
-	<tr><td><tt>=</tt></td><td>Base64 encode the value</td></tr>
 </table>
 <p>Only use <tt>$%<i>variable</i></tt> with great care, and ensure any construction of the variable value uses <tt>sqlexpand</tt> to safely escape what is being set.</p>.
 <h2>Special variable</h2>
 <p>Instead of the variable name itself there are some special variables.</p>
 <table>
 	<tr><td><tt>$</tt></td><td>Generate the parent PID (deprecated)</td></tr>
-	<tr><td><tt>@</tt></td><td>Generate a reference (current dir modify timestamp)</td></tr>
 	<tr><td><tt>&lt;</tt></td><td>Read stdin</td></tr>
 	<tr><td><tt>\</tt></td><td>Generate a back tick (so starts/ends back tick quoting if used outside other quotes).</td></tr>
 	<tr><td><tt>/</tt></td><td>Generate a single quote (so starts/ends single quoting if used outside other quotes).</td></tr>
@@ -36,3 +35,10 @@
 	<tr><td><tt>:e</tt></td><td>Extension. Everything after final dot if after last slash. Blank if no dot after last slash.</td></tr>
 	<tr><td><tt>:r</tt></td><td>Remove extension. Removes last dot and anything after if it, if dot is after a slash.</td></tr>
 </table>
+<h2>Checking</h2>
+<p>The final SQL has to then pass some tests to help catch any remaining possible SQL injection (e.g. from <tt>$%<i>variable</i></tt>).</p>
+<ul>
+	<li>Must have correctly balanced quotes (<tt>'</tt>, <tt>"</tt> and <tt>`</tt>).</li>
+	<li>Must not contain an unquoted <tt>;</tt>, i.e. an attempt to make multiple commands.</li>
+	<li>Must not contain an unquoted <tt>#</tt>, <tt>/*</tt> or <tt>--&nbsp;</tt>, i.e. an attempt to include a comment.</li>
+</ul>
