@@ -79,9 +79,9 @@ void dosql(const char *origquery)
    {
       query = sqlexpand(origquery, getenv, &e, &ep, SQLEXPANDSTDIN | SQLEXPANDFILE | SQLEXPANDBLANK | SQLEXPANDUNSAFE);
       if (!query)
-         errx(1, "Expand failed: %s\n[%s]", e, origquery);
+         errx(1, "Expand failed: %s\n[%s]\n[%s]", e, origquery,ep);
       if (e)
-         fprintf(stderr, "Expand issue: %s\n[%s]\n[%s]", e, origquery, query);
+         fprintf(stderr, "Expand issue: %s\n[%s]\n[%s]\n[%s]\n", e, origquery, query,ep);
    }
    if (expand)
    {                            // Just expanding
