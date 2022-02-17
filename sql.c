@@ -1,5 +1,5 @@
 // General SQL client application
-// Designed to execute distinct queries
+// Designed to execute distint queries
 // Expands environment variables with quoting for sql
 // Various output formats
 // (c) Adrian Kennard 2007
@@ -12,10 +12,15 @@
 #include <ctype.h>
 #include <string.h>
 #include <unistd.h>
+#include <uuid/uuid.h>
 #include <syslog.h>
 #include <signal.h>
 #include <execinfo.h>
+#include "sqlexpand.h"
 #include "sqllib.h"
+#ifndef	NOXML
+#include "axl.h"
+#endif
 
 const char *sqlconf = NULL;
 const char *sqlhost = NULL;
@@ -23,6 +28,13 @@ unsigned int sqlport = 0;
 const char *sqluser = NULL;
 const char *sqlpass = NULL;
 const char *sqldatabase = NULL;
+#ifndef	NOXML
+const char *xmlroot = "sql";
+const char *xmlinfo = NULL;
+const char *xmlcol = "col";
+const char *xmlresult = "result";
+const char *xmlrow = "row";
+#endif
 const char *csvsol = "";
 const char *csveol = "";
 const char *csvnull = "";
@@ -33,6 +45,7 @@ int trans = 0;
 int debug = 0;
 int headers = 0;
 int noexpand = 0;
+int expand = 0;
 int reportid = 0;
 int reportchanges = 0;
 int statuschanges = 0;
@@ -40,8 +53,16 @@ int ret = 0;
 int linesplit = 0;
 int safe = 0;
 int unsafe = 0;
+#ifndef	NOXML
+int xmlout = 0;
+#endif
+int jsonout = 0;
 int csvout = 0;
 int abortdeadlock = 0;
+#ifndef NOXML
+xml_t xml = NULL;
+#endif
+char uuid[37] = "";
 
 SQL sql;
 SQL_RES *res;
@@ -49,280 +70,24 @@ SQL_ROW row;
 
 void dosql(const char *origquery)
 {
-   char *query = strdupa(origquery);
-   char *qalloc = NULL;
-   int par = 0,
-       hash = 0,
-       comma = 0;
-   if (!noexpand)
-   {                            // expand query
-      int nalloc = 0,
-          p = 0;
-      char *i;
-      char quote = 0;
-      i = query + strlen(query);
-      while (i > query && i[-1] < ' ')
-         i--;
-      if (i > query && i[-1] == ';')
-         i--;
-      *i = 0;
-#define add(c)	{if(p>=nalloc&&!(qalloc=realloc(qalloc,nalloc+=1000)))err(5,"malloc %d",nalloc);qalloc[p++]=(c);}
-      void addquoted(char c, int tab) {
-         if ((tab && c == '\t') || c == ',')
-         {
-            if (hash || comma)
-               add(quote && quote != '"' ? quote : '\'');
-            add(',');
-            if (hash || comma)
-               add(quote && quote != '"' ? quote : '\'');
-         } else if (quote == '`')
-         {
-            if ((unsigned char) c >= ' ')
-               add(c);
-         } else if (c == '\'')
-         {
-            add('\'');
-            add('\'');
-         } else if (c == '\\')
-         {
-            add('\\');
-            add('\\');
-         } else if (c == '\n')
-         {
-            add('\\');
-            add('n');
-         } else if (c == '\r')
-         {
-            add('\\');
-            add('r');
-         } else if (c == '\t')
-         {
-            add('\\');
-            add('t');
-         } else if ((unsigned char) c >= ' ' || c == '\f')
-            add(c);
-      }
-      for (i = query; *i; i++)
-      {
-         if (quote && quote == *i)
-         {
-            add((quote == '"') ? '\'' : quote);
-            quote = 0;
-            continue;
-         }
-         if (!quote && (*i == '\'' || *i == '"' || *i == '`'))
-         {
-            quote = *i;
-            add((quote == '"') ? '\'' : quote);
-            continue;
-         }
-         if (quote && *i == '\'')
-         {
-            add('\'');
-            add('\'');
-            continue;
-         }
-         if (*i == '\\' && i[1])
-         {
-            add(*i);
-            i++;
-            add(*i);
-            continue;
-         }
-         if (*i == '$' && i[1] == '-')
-         {                      // stdin
-            int c;
-            if (!quote)
-               add('\'');
-            while ((c = getchar()) >= 0)
-               addquoted(c, 0);
-            if (!quote)
-               add('\'');
-            i++;
-            continue;
-         }
-         if (*i == '$' && i[1] == '$')
-         {
-            add(*i++);
-            continue;
-         }
-         if (!quote)
-         {                      // Look for stuff that is common in injection attacks
-            if (*i == ';')
-               errx(5, "Multiple command");
-            if (*i == '#' || (*i == '/' && i[1] == '*') || (*i == '-' && i[1] == '-' && (!i[2] || isspace(i[2]))))
-               errx(5, "Comment in SQL - don't do that");
-         }
-         if (*i == '$')
-         {                      // More general case
-            char was;
-            char *e,
-            *b = NULL,
-                esc = 0,
-                file = 0;
-            comma = hash = 0;
-            char *q = i;
-            i++;
-            // Prefixes
-            while (*i)
-               if (*i == '#')
-               {
-                  hash = 1;
-                  i++;
-                  continue;
-               } else if (*i == ',')
-               {
-                  comma = 1;
-                  i++;
-                  continue;
-               } else if (*i == '@')
-               {
-                  file = 1;
-                  i++;
-                  continue;
-               } else
-                  break;
-            if (*i == '{' && isalpha(i[1]))
-            {
-               esc = 1;
-               i++;
-               b = i;
-               while (*i && *i != '}')
-                  i++;
-               if (*i != '}')
-               {
-                  i = q;
-                  b = NULL;
-               }
-            } else if (isalpha(*i))
-            {
-               b = i;
-               while (isalnum(*i) || *i == '_')
-                  i++;
-            } else
-               i = q;
-            if (b)
-            {                   // We have variable...
-               was = *i;
-               *i = 0;
-               e = getenv(b);
-               if (!e)
-               {
-                  if (debug)
-                     fprintf(stderr, "No variable $%s\n", b);
-                  *i = was;
-                  if (!esc)
-                     i--;
-                  continue;
-               }
-               if (file)
-               {
-                  FILE *f = fopen(e, "r");
-                  if (!f)
-                  {
-                     if (debug)
-                        fprintf(stderr, "No file $%s (%s)\n", b, e);
-                     *i = was;
-                     if (!esc)
-                        i--;
-                     continue;
-                  }
-                  int c;
-                  if (!quote)
-                     add('\'');
-                  while ((c = fgetc(f)) >= 0)
-                     addquoted(c, 0);
-                  if (!quote)
-                     add('\'');
-                  fclose(f);
-               } else
-               {
-                  if ((hash || comma))
-                  {             // special quoting
-                     if (!quote)
-                        add('\'');
-                     while (*e)
-                        addquoted(*e++, comma);
-                     if (!quote)
-                        add('\'');
-                  } else if (quote == '`')
-                  {
-                     while (*e)
-                     {          // limited field name variable expansion
-                        if (isalnum(*e) || *e == '.')
-                           add(*e);
-                        e++;
-                     }
-                  } else if (quote)
-                  {             // other quoted variable name expansion
-                     while (*e)
-                        addquoted(*e++, 0);
-                  } else
-                  {             // allow simple numbers if not quoted
-                     char *q = e;
-                     int l = 0;
-                     while (*q)
-                     {
-                        if ((*q == '+' || *q == '-' || *q == '(') && q[1])
-                        {
-                           if (*q == '(')
-                              l++;
-                           q++;
-                        }
-                        if (!isdigit(*q) && *q != '.')
-                           break;
-                        while (isdigit(*q))
-                           q++;
-                        if (*q == '.')
-                        {
-                           q++;
-                           while (isdigit(*q))
-                              q++;
-                           if (*q == 'e' || *q == 'E')
-                           {
-                              q++;
-                              if (*q == '+' || *q == '-')
-                                 q++;
-                              while (isdigit(*q))
-                                 q++;
-                           }
-                        }
-                        while (*q == ')')
-                        {
-                           l--;
-                           q++;
-                        }
-                        while (*q == ' ')
-                           q++;
-                        if ((*q == '*' || *q == '/' || *q == '+' || *q == '-') && q[1])
-                           q++; // simple maths
-                        while (*q == ' ')
-                           q++;
-                     }
-                     if (*q || l)
-                     {
-                        add('0');       // if not valid use 0 as a syntactically valid option
-                        if (debug)
-                           fprintf(stderr, "Invalid syntax in variable, %s\n", e);
-                     } else
-                        while (*e)
-                           add(*e++);
-                  }
-               }
-               *i = was;
-               if (!esc)
-                  i--;
-               continue;
-            }
-         }
-         if (*i == '(')
-            par++;
-         else if (*i == ')')
-            par--;
-         add(*i);
-      }
-      add(0);
-      query = qalloc;
+   const char *e,
+   *ep;
+   char *query;
+   if (noexpand)
+      query = strdupa(origquery);
+   else
+   {
+      query = sqlexpand(origquery, getenv, &e, &ep, SQLEXPANDSTDIN | SQLEXPANDFILE | SQLEXPANDBLANK | SQLEXPANDUNSAFE);
+      if (!query)
+         errx(1, "Expand failed: %s\n[%s]", e, origquery);
+      if (e)
+         fprintf(stderr, "Expand issue: %s\n[%s]\n[%s]", e, origquery, query);
+   }
+   if (expand)
+   {                            // Just expanding
+      printf("%s", query);
+      free(query);
+      return;
    }
    int err = sql_query(&sql, query);
    if (err && !safe && !unsafe && sql_errno(&sql) == ER_UPDATE_WITHOUT_KEY_IN_SAFE_MODE)
@@ -358,6 +123,96 @@ void dosql(const char *origquery)
             for (f = 0; f < fields; f++)
                fprintf(stderr, "%d\t%lu\t%s\t", field[f].type, field[f].length, field[f].name);
          }
+#endif
+#ifndef NOXML
+         if (xml)
+         {
+            if (xmlinfo && *xmlinfo && *xmlresult)
+            {
+               xml_t x = xml_element_add(xml, xmlinfo);
+               for (f = 0; f < fields; f++)
+               {
+                  xml_t c = xml_element_add(x, xmlcol);
+                  xml_attribute_set(c, "name", field[f].name);
+                  if (!(field[f].flags & NOT_NULL_FLAG))
+                     xml_attribute_set(c, "null", "true");
+                  if (field[f].flags & PRI_KEY_FLAG)
+                     xml_attribute_set(c, "key", "primary");
+                  else if (field[f].flags & UNIQUE_KEY_FLAG)
+                     xml_attribute_set(c, "key", "unique");
+                  else if (field[f].flags & MULTIPLE_KEY_FLAG)
+                     if (field[f].flags & UNSIGNED_FLAG)
+                        xml_attribute_set(c, "unsigned", "true");
+                  if (field[f].flags & ZEROFILL_FLAG)
+                     xml_attribute_set(c, "zero-fill", "true");
+                  if (debug)
+                  {
+                     if (field[f].db)
+                        xml_attribute_set(c, "database", field[f].db);
+                     if (field[f].table)
+                        xml_attribute_set(c, "table", field[f].table);
+                     if (field[f].table && field[f].org_table && strcmp(field[f].table, field[f].org_table))
+                        xml_attribute_set(c, "org-table", field[f].org_table);
+                  }
+                  if (!(field[f].flags & BLOB_FLAG))
+                  {
+                     if (field[f].length)
+                        xml_attribute_set(c, "length", xml_number(field[f].length));
+                     if (field[f].max_length)
+                        xml_attribute_set(c, "max-length", xml_number(field[f].max_length));
+                     if (field[f].decimals)
+                        xml_attribute_set(c, "decimals", xml_number(field[f].decimals));
+                  }
+#define t(x) if(field[f].type==MYSQL_TYPE_##x)xml_attribute_set(c,"type",#x);
+                  t(DECIMAL);
+                  t(TINY);
+                  t(SHORT);
+                  t(LONG);
+                  t(FLOAT);
+                  t(DOUBLE);
+                  t(NULL);
+                  t(TIMESTAMP);
+                  t(LONGLONG);
+                  t(INT24);
+                  t(DATE);
+                  t(TIME);
+                  t(DATETIME);
+                  t(YEAR);
+                  t(NEWDATE);
+#ifdef	MYSQL_TYPE_VARCHAR
+                  t(VARCHAR);
+#endif
+#ifdef	MYSQL_TYPE_BIT
+                  t(BIT);
+#endif
+#ifdef	MYSQL_TYPE_NEWDECIMAL
+                  t(NEWDECIMAL);
+#endif
+                  t(ENUM);
+                  t(SET);
+                  t(TINY_BLOB);
+                  t(MEDIUM_BLOB);
+                  t(LONG_BLOB);
+                  t(BLOB);
+                  t(VAR_STRING);
+                  t(STRING);
+                  t(GEOMETRY);
+#undef t
+               }
+            }
+            xml_t x = xml;
+            if (*xmlresult)
+               x = xml_element_add(x, xmlresult);
+            if (headers)
+               xml_attribute_set(x, "query", query);
+            while ((row = sql_fetch_row(res)))
+            {
+               xml_t r = xml_element_add(x, xmlrow);
+               for (f = 0; f < fields; f++)
+                  if (row[f])
+                     xml_attribute_set(r, field[f].name, row[f]);
+            }
+         } else
 #endif
          if (csvout)
          {
@@ -459,6 +314,8 @@ void dosql(const char *origquery)
             unsigned long long i = sql_insert_id(&sql);
             if (i)
                printf("%llu\n", sql_insert_id(&sql));
+            else if (*uuid)
+               printf("%s\n", uuid);
          }
          if (reportchanges)
             printf("%llu\n", sql_affected_rows(&sql));
@@ -466,14 +323,20 @@ void dosql(const char *origquery)
             ret++;
       }
    }
-   if (qalloc)
-      free(qalloc);
+   free(query);
    if (slow)
       usleep(10000);
 }
 
 int main(int argc, const char *argv[])
 {
+#ifndef NOXML
+   const char *defxmlroot = xmlroot;
+   const char *defxmlinfo = xmlinfo;
+   const char *defxmlcol = xmlcol;
+   const char *defxmlresult = xmlresult;
+   const char *defxmlrow = xmlrow;
+#endif
    const char *defcsvsol = csvsol;
    const char *defcsveol = csveol;
    const char *defcsvnull = csvnull;
@@ -497,9 +360,23 @@ int main(int argc, const char *argv[])
       { "unsafe", 0, POPT_ARG_NONE, &unsafe, 0, "Use unsafe mode (default is to warn but continue)", 0 },
       { "status-changes", 'C', POPT_ARG_NONE, &statuschanges, 0, "Return non zero status if no changes were made", 0 },
       { "no-expand", 'x', POPT_ARG_NONE, &noexpand, 0, "Don't expand env variables", 0 },
+      { "expand", 0, POPT_ARG_NONE, &expand, 0, "Just expand the queries and write to stdout", 0 },
       { "transaction", 't', POPT_ARG_NONE, &trans, 0, "Run sequence of commands as a transaction", 0 },
       { "abort-deadlock", 'A', POPT_ARG_NONE, &abortdeadlock, 0, "Do not retry single command on deadlock error", 0 },
+#ifndef NOXML
+      { "XML", 0, POPT_ARGFLAG_DOC_HIDDEN | POPT_ARG_NONE, &xmlout, 0, "Output in XML", 0 },
+      { "xml", 'X', POPT_ARG_NONE, &xmlout, 0, "Output in XML", 0 },
+#endif
       { "csv", 0, POPT_ARG_NONE, &csvout, 0, "Output in CSV", 0 },
+      { "json", 0, POPT_ARG_NONE, &jsonout, 0, "Output in JSON", 0 },
+#ifndef NOXML
+
+      { "xml-root", 0, POPT_ARGFLAG_SHOW_DEFAULT | POPT_ARG_STRING, &xmlroot, 0, "Label for root object", 0 },
+      { "xml-info", 0, POPT_ARG_STRING, &xmlinfo, 0, "Label for info object (column type info)", 0 },
+      {
+       "xml-result", 0, POPT_ARGFLAG_SHOW_DEFAULT | POPT_ARG_STRING, &xmlresult, 0, "Label for result object", 0 },
+      { "xml-row", 0, POPT_ARGFLAG_SHOW_DEFAULT | POPT_ARG_STRING, &xmlrow, 0, "Label for row object", 0 },
+#endif
       { "csv-sol", 0, POPT_ARG_STRING, &csvsol, 0, "Start of each line for CSV", 0 },
       { "csv-eol", 0, POPT_ARG_STRING, &csveol, 0, "End of each line for CSV", 0 },
       { "csv-null", 0, POPT_ARG_STRING, &csvnull, 0, "NULL in CSV", 0 },
@@ -515,7 +392,7 @@ int main(int argc, const char *argv[])
    };
 
    popt = poptGetContext(NULL, argc, argv, optionsTable, 0);
-   poptSetOtherOptionHelp(popt, "[database] '<sql-commands>' (May include $VAR, $- for stdin, $+ for UUID)");
+   poptSetOtherOptionHelp(popt, "[database] '<sql-commands>'");
    /* Now do options processing, get portname */
    {
       int c = poptGetNextOpt(popt);
@@ -525,7 +402,21 @@ int main(int argc, const char *argv[])
 
    if (safe && unsafe)
       errx(1, "Do the safety dance");
-
+#ifndef NOXML
+   if (jsonout)
+   {                            // Alternative defaults for json
+      if (defxmlroot == xmlroot)
+         xmlroot = "";
+      if (defxmlrow == xmlrow)
+         xmlrow = "";
+      if (defxmlinfo == xmlinfo)
+         xmlinfo = "";
+      if (defxmlresult == xmlresult)
+         xmlresult = "";
+      if (defxmlcol == xmlcol)
+         xmlcol = "";
+   }
+#endif
    if (jsarray)
    {                            // Alternative defaults for jsarray
       csvout = 1;
@@ -538,18 +429,31 @@ int main(int argc, const char *argv[])
       if (defcsvcomma == csvcomma)
          csvcomma = ",";
    }
+#ifndef NOXML
+   if (xmlout || jsonout)
+   {
+      xml = xml_tree_new(NULL);
+      xml_tree_add_root(xml, xmlroot);
+   }
+#endif
 
-   if (!sqldatabase && poptPeekArg(popt))
+   if (!expand && !sqldatabase && poptPeekArg(popt))
       sqldatabase = poptGetArg(popt);
 
    if (sqldatabase && !*sqldatabase)
       sqldatabase = NULL;
 
-   sql_real_connect(&sql, sqlhost, sqluser, sqlpass, sqldatabase, sqlport, 0, 0, 1, sqlconf);
+   if (sqldatabase && expand)
+      errx(1, "Don't specify database for --expand");
+   if (expand && noexpand)
+      errx(1, "Make your bloody mind up");
+
+   if (!expand)
+      sql_real_connect(&sql, sqlhost, sqluser, sqlpass, sqldatabase, sqlport, 0, 0, 1, sqlconf);
 
    if (trans)
       dosql("START TRANSACTION");
-   if (!unsafe)
+   if (!expand && !unsafe)
       sql_safe_query(&sql, "SET SQL_SAFE_UPDATES=1");
    if (!poptPeekArg(popt))
    {                            // stdin
@@ -557,7 +461,16 @@ int main(int argc, const char *argv[])
       size_t linespace = 0;
       ssize_t len = 0;
       while ((len = getline(&line, &linespace, stdin)) > 0)
+      {
+         if (len && line[len - 1] == '\n')
+            len--;
+         if (len && line[len - 1] == '\r')
+            len--;
+         if (len && line[len - 1] == ';')
+            len--;
+         line[len] = 0;
          dosql(line);
+      }
       if (line)
          free(line);
    } else
@@ -565,6 +478,23 @@ int main(int argc, const char *argv[])
          dosql(poptGetArg(popt));
    if (trans)
       dosql("COMMIT");
-   sql_close(&sql);
+   if (!expand)
+      sql_close(&sql);
+#ifndef NOXML
+   if (xml)
+   {
+      if (headers)
+      {
+         if (sqlhost)
+            xml_attribute_set(xml, "host", sqlhost);
+         xml_attribute_set(xml, "database", sqldatabase);
+      }
+      if (xmlout)
+         xml_write(stdout, xml);
+      if (jsonout)
+         xml_write_json(stdout, xml);
+      xml = xml_tree_delete(xml);
+   }
+#endif
    return ret;
 }

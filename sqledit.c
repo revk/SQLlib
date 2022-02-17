@@ -392,7 +392,7 @@ int main(int argc, const char *argv[])
          {
             if (!q)
                return;
-            char *v;            // value
+            char *v = NULL;     // value
             if (cmdnew)
                v = getenv(fields[f].name) ? : q->defval;
             else if (row)

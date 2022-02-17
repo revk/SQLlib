@@ -8,16 +8,24 @@ ifneq ($(wildcard /usr/bin/mariadb_config),)
 	SQLLIB=$(shell mariadb_config --libs)
 	SQLVER=$(shell mariadb_config --version | sed 'sx\..*xx')
 endif
-all: sqllib.o sql sqlwrite sqledit
+OPTS=-D_GNU_SOURCE --std=gnu99 -g -Wall -funsigned-char -std=c99 -lpopt
+
+all: sqllib.o sqlexpand.o sql sqlwrite sqledit
 
 sqllib.o: sqllib.c sqllib.h Makefile
-	gcc -g -O -c -o $@ $< -fPIC -D_GNU_SOURCE -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER} --std=gnu99
+	gcc -g -O -c -o $@ $< -fPIC ${OPTS} -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER}
 
-sql: sql.c sqllib.o sqllib.h
-	gcc -g -O -o $@ $< -fPIC -D_GNU_SOURCE ${SQLINC} ${SQLLIB} -lpopt sqllib.o --std=gnu99
+sql: sql.c sqllib.o sqllib.h sqlexpand.o sqlexpand.h
+	gcc -g -O -o $@ $< -fPIC ${OPTS} -DNOXML ${SQLINC} ${SQLLIB} -lpopt sqllib.o sqlexpand.o -lcrypto -luuid
 
 sqlwrite: sqlwrite.c sqllib.o sqllib.h
-	gcc -g -O -o $@ $< -fPIC -D_GNU_SOURCE ${SQLINC} ${SQLLIB} -lpopt sqllib.o --std=gnu99
+	gcc -g -O -o $@ $< -fPIC ${OPTS} ${SQLINC} ${SQLLIB} -lpopt sqllib.o
 
 sqledit: sqledit.c sqllib.o sqllib.h
-	gcc -g -O -o $@ $< -fPIC -D_GNU_SOURCE ${SQLINC} ${SQLLIB} -lpopt sqllib.o --std=gnu99
+	gcc -g -O -o $@ $< -fPIC ${OPTS} ${SQLINC} ${SQLLIB} -lpopt sqllib.o
+
+sqlexpand.o: sqlexpand.c Makefile
+	cc -c -o $@ $< ${OPTS} -DLIB
+
+sqlexpand: sqlexpand.c Makefile
+	cc -O -o $@ $< ${OPTS} -luuid -lcrypto
