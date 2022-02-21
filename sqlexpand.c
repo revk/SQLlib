@@ -606,11 +606,11 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
          }
       } else
       {                         // Output value (processed)
-         char quote = 0;
+         char qclose = 0;
          if (!q && list)
          {
             fputc(q = '"', f);
-            quote = 1;          // Ensures we close it
+            qclose = 1;         // Close the quote
          }
          if (!q)
          {                      // Only allow numeric expansion
@@ -646,41 +646,41 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
                warn = "Expansion outside any quotes is not a clean number";
                value = (flags & SQLEXPANDZERO) ? "0" : "";
             }
-         }
-         while (*value)
-         {                      // Processed
-            if (list && (*value == ',' || *value == '\t'))
-            {
-               fputc(q ? : '"', f);
-               fputc(',', f);
-               fputc(q ? : '"', f);
-               value++;
-               continue;
-            }
-            if (*value == '\\')
-            {                   // backslash is literal
-               fputc(*value++, f);
-               if (*value)
-                  fputc(*value++, f);
-               else
+         } else
+            while (*value)
+            {                   // Processed
+               if (list && (*value == ',' || *value == '\t'))
                {
-                  fputc('\\', f);
-                  warn = "Trailing \\ in expansion";
+                  fputc(q, f);
+                  fputc(',', f);
+                  fputc(q, f);
+                  value++;
+                  continue;
                }
-               continue;
+               if (*value == '\\')
+               {                // backslash is literal
+                  fputc(*value++, f);
+                  if (*value)
+                     fputc(*value++, f);
+                  else
+                  {
+                     fputc('\\', f);
+                     warn = "Trailing \\ in expansion";
+                  }
+                  continue;
+               }
+               if (q && *value == q)
+               {                // Quoted
+                  fputc(q, f);
+                  fputc(q, f);
+                  value++;
+                  continue;
+               }
+               fputc(*value++, f);
             }
-            if (q && *value == q)
-            {                   // Quoted
-               fputc(q, f);
-               fputc(q, f);
-               value++;
-               continue;
-            }
-            fputc(*value++, f);
-         }
-         if (q || quote)
+         if (qclose)
          {                      // Close
-            fputc(q ? : '"', f);
+            fputc(q, f);
             q = 0;
          }
       }
