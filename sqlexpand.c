@@ -649,11 +649,11 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
          }
          while (*value)
          {                      // Processed
-            if (q && list && (*value == ',' || *value == '\t'))
+            if (list && (*value == ',' || *value == '\t'))
             {
-               fputc(q, f);
+               fputc(q ? : '"', f);
                fputc(',', f);
-               fputc(q, f);
+               fputc(q ? : '"', f);
                value++;
                continue;
             }
@@ -678,9 +678,9 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
             }
             fputc(*value++, f);
          }
-         if (q && quote)
+         if (q || quote)
          {                      // Close
-            fputc(q, f);
+            fputc(q ? : '"', f);
             q = 0;
          }
       }
