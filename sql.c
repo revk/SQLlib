@@ -73,15 +73,29 @@ void dosql(const char *origquery)
    const char *e,
    *ep;
    char *query;
-   if (noexpand)
-      query = strdupa(origquery);
-   else
+   query = strdupa(origquery);
+   int l = strlen(query);
+   if (l && query[l - 1] == '\n')
+      l--;
+   if (l && query[l - 1] == '\r')
+      l--;
+   while (l && isspace(query[l - 1]))
+      l--;
+   if (l && query[l - 1] == ';')
    {
-      query = sqlexpand(origquery, getenv, &e, &ep, SQLEXPANDSTDIN | SQLEXPANDFILE | SQLEXPANDBLANK | SQLEXPANDUNSAFE);
+      l--;
+      warnx("Trailing ; on query %s", origquery);
+   }
+   query[l] = 0;
+   if (!l)
+      return;
+   if (!noexpand)
+   {
+      query = sqlexpand(query, getenv, &e, &ep, SQLEXPANDSTDIN | SQLEXPANDFILE | SQLEXPANDBLANK | SQLEXPANDUNSAFE);
       if (!query)
-         errx(1, "Expand failed: %s\n[%s]\n[%s]", e, origquery,ep);
+         errx(1, "Expand failed: %s\n[%s]\n[%s]", e, origquery, ep);
       if (e)
-         fprintf(stderr, "Expand issue: %s\n[%s]\n[%s]\n[%s]\n", e, origquery, query,ep);
+         fprintf(stderr, "Expand issue: %s\n[%s]\n[%s]\n[%s]\n", e, origquery, query, ep);
    }
    if (expand)
    {                            // Just expanding
@@ -461,16 +475,7 @@ int main(int argc, const char *argv[])
       size_t linespace = 0;
       ssize_t len = 0;
       while ((len = getline(&line, &linespace, stdin)) > 0)
-      {
-         if (len && line[len - 1] == '\n')
-            len--;
-         if (len && line[len - 1] == '\r')
-            len--;
-         if (len && line[len - 1] == ';')
-            len--;
-         line[len] = 0;
          dosql(line);
-      }
       if (line)
          free(line);
    } else
