@@ -98,9 +98,8 @@ dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
       else if (*p == '*')
       {
          d->file++;
-	 warnx("Using $*, change to $@");
-      }
-      else if (*p == '%')
+         warnx("Using $*, change to $@");
+      } else if (*p == '%')
          d->literal++;
       else if (*p == '+')
          d->url++;
@@ -651,38 +650,38 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
                warn = "Expansion outside any quotes is not a clean number";
                value = (flags & SQLEXPANDZERO) ? "0" : "";
             }
-         } else
-            while (*value)
-            {                   // Processed
-               if (list && (*value == ',' || *value == '\t'))
-               {
-                  fputc(q, f);
-                  fputc(',', f);
-                  fputc(q, f);
-                  value++;
-                  continue;
-               }
-               if (*value == '\\')
-               {                // backslash is literal
-                  fputc(*value++, f);
-                  if (*value)
-                     fputc(*value++, f);
-                  else
-                  {
-                     fputc('\\', f);
-                     warn = "Trailing \\ in expansion";
-                  }
-                  continue;
-               }
-               if (q && *value == q)
-               {                // Quoted
-                  fputc(q, f);
-                  fputc(q, f);
-                  value++;
-                  continue;
-               }
-               fputc(*value++, f);
+         }
+         while (*value)
+         {                      // Processed
+            if (list && (*value == ',' || *value == '\t'))
+            {
+               fputc(q, f);
+               fputc(',', f);
+               fputc(q, f);
+               value++;
+               continue;
             }
+            if (*value == '\\')
+            {                   // backslash is literal
+               fputc(*value++, f);
+               if (*value)
+                  fputc(*value++, f);
+               else
+               {
+                  fputc('\\', f);
+                  warn = "Trailing \\ in expansion";
+               }
+               continue;
+            }
+            if (q && *value == q)
+            {                   // Quoted
+               fputc(q, f);
+               fputc(q, f);
+               value++;
+               continue;
+            }
+            fputc(*value++, f);
+         }
          if (qclose)
          {                      // Close
             fputc(q, f);
