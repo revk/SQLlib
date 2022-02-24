@@ -62,6 +62,35 @@ unsigned char dollar_expand_underscore(dollar_expand_t * d)
    return d->underscore;
 }
 
+const char *checknum(const char *v)
+{
+   if (!v)
+      return NULL;
+   if (*v == '-')
+      v++;
+   if (!isdigit(*v))
+      return NULL;
+   while (isdigit(*v))
+      v++;
+   if (*v == '.')
+   {
+      v++;
+      while (isdigit(*v))
+         v++;
+   }
+   if (*v == 'e' || *v == 'E')
+   {
+      v++;
+      if (*v == '+' || *v == '-')
+         v++;
+      if (!isdigit(*v))
+         return NULL;
+      while (isdigit(*v))
+         v++;
+   }
+   return v;
+}
+
 // Initialises dollar_expand_t. Passed pointer to character after the $. Returns next character after parsing $ expansion args
 dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
 {
@@ -615,41 +644,11 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
          }
       } else
       {                         // Output value (processed)
-         char qclose = 0;
-         if (!q && list)
-         {
-            fputc(q = '"', f);
-            qclose = 1;         // Close the quote
-         }
          if (!q)
          {                      // Only allow numeric expansion
-            const char *v = value;
-            if (*v == '-')
-               v++;
-            if (!isdigit(*v))
-               v = NULL;
-            else
-            {
-               while (isdigit(*v))
-                  v++;
-               if (*v == '.')
-               {
-                  v++;
-                  while (isdigit(*v))
-                     v++;
-               }
-               if (*v == 'e' || *v == 'E')
-               {
-                  v++;
-                  if (*v == '+' || *v == '-')
-                     v++;
-                  if (!isdigit(*v))
-                     v = NULL;
-                  else
-                     while (isdigit(*v))
-                        v++;
-               }
-            }
+            const char *v = checknum(value);
+            while (list && v && *v == ',')
+               v = checknum(v + 1);
             if (!v || *v)
             {
                warn = "Expansion outside any quotes is not a clean number";
@@ -659,7 +658,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
          // Process value (even if numeric as already checked)
          while (*value)
          {                      // Processed
-            if (list && (*value == ',' || *value == '\t'))
+            if (list && q && (*value == ',' || *value == '\t'))
             {
                fputc(q, f);
                fputc(',', f);
@@ -687,11 +686,6 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
                continue;
             }
             fputc(*value++, f);
-         }
-         if (qclose)
-         {                      // Close
-            fputc(q, f);
-            q = 0;
          }
       }
       dollar_expand_free(&d);
