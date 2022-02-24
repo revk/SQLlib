@@ -588,6 +588,8 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
             return fail("$% not allowed");
          if (list)
             return fail("$% used with list prefix");
+         if (q)
+            return fail("$% used inside quotes, why?");
          while (*value)
          {
             if (*value == '\\')
@@ -651,7 +653,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
                value = (flags & SQLEXPANDZERO) ? "0" : "";
             }
          }
-	 // Process value (even if numeric as already checked)
+         // Process value (even if numeric as already checked)
          while (*value)
          {                      // Processed
             if (list && (*value == ',' || *value == '\t'))
