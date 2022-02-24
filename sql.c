@@ -91,7 +91,7 @@ void dosql(const char *origquery)
       return;
    if (!noexpand)
    {
-      query = sqlexpand(query, getenv, &e, &ep, SQLEXPANDSTDIN | SQLEXPANDFILE | SQLEXPANDBLANK | SQLEXPANDUNSAFE);
+      query = sqlexpand(query, getenv, &e, &ep, SQLEXPANDSTDIN | SQLEXPANDFILE | SQLEXPANDBLANK | SQLEXPANDUNSAFE | SQLEXPANDZERO);
       if (!query)
          errx(1, "Expand failed: %s\n[%s]\n[%s]", e, origquery, ep);
       if (e)
