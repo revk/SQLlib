@@ -93,8 +93,13 @@ dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
          d->hash++;
       else if (*p == ',')
          d->list++;
-      else if (*p == '*')
+      else if (*p == '@')
          d->file++;
+      else if (*p == '*')
+      {
+         d->file++;
+	 warnx("Using $*, change to $@");
+      }
       else if (*p == '%')
          d->literal++;
       else if (*p == '+')
