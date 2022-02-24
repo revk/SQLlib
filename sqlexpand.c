@@ -651,6 +651,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
                value = (flags & SQLEXPANDZERO) ? "0" : "";
             }
          }
+	 // Process value (even if numeric as already checked)
          while (*value)
          {                      // Processed
             if (list && (*value == ',' || *value == '\t'))
