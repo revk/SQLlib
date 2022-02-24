@@ -550,7 +550,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
             q = '\'';
          fputc('\'', f);
          value = "";
-         literal = 1;
+         literal = 2;           // Don't mess about expanding this value
       } else if (!name[1] && *name == '\\')
       {                         // Literal `
          if (q == '`')
@@ -559,7 +559,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
             q = '`';
          fputc('`', f);
          value = "";
-         literal = 1;
+         literal = 2;           // Don't mess about expanding this value
       } else
          value = getvar(name);
 
@@ -584,12 +584,15 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
 
       if (literal)
       {                         // Output value (literal)
-         if (!(flags & SQLEXPANDUNSAFE))
-            return fail("$% not allowed");
-         if (list)
-            return fail("$% used with list prefix");
-         if (q)
-            return fail("$% used inside quotes, why?");
+         if (literal == 1)
+         {                      // Was used as $%
+            if (!(flags & SQLEXPANDUNSAFE))
+               return fail("$% not allowed");
+            if (list)
+               return fail("$% used with list prefix");
+            if (q)
+               return fail("$% used inside quotes, why?");
+         }
          while (*value)
          {
             if (*value == '\\')
