@@ -658,7 +658,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
          else if (quote)
             fputc(q = '"', f);
          if (!q)
-         {                      // Only allow numeric expansion
+         {                      // Only allow numeric expansion - allows for list if not quoting
             const char *v = checknum(value);
             while (list && v && *v == ',')
                v = checknum(v + 1);
