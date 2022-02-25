@@ -1,5 +1,5 @@
 // General SQL client application
-// Designed to execute distint queries
+// Designed to execute distinct queries
 // Expands environment variables with quoting for sql
 // Various output formats
 // (c) Adrian Kennard 2007
@@ -75,10 +75,6 @@ void dosql(const char *origquery)
    char *query;
    query = strdupa(origquery);
    int l = strlen(query);
-   if (l && query[l - 1] == '\n')
-      l--;
-   if (l && query[l - 1] == '\r')
-      l--;
    while (l && isspace(query[l - 1]))
       l--;
    if (l && query[l - 1] == ';')
@@ -475,7 +471,18 @@ int main(int argc, const char *argv[])
       size_t linespace = 0;
       ssize_t len = 0;
       while ((len = getline(&line, &linespace, stdin)) > 0)
+      {
+         if (len && line[len - 1] == '\n')
+            len--;
+         if (len && line[len - 1] == '\r')
+            len--;
+         while (len && isspace(line[len - 1]))
+            len--;
+         if (len && line[len - 1] == ';')
+            len--;              // We allow trailing ; in files as normal for SQL...
+         line[len] = 0;
          dosql(line);
+      }
       if (line)
          free(line);
    } else
