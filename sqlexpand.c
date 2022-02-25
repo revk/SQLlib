@@ -22,6 +22,7 @@
 
 // Low level dollar expansion parse
 struct dollar_expand_s {
+   unsigned char quote:1;       // Add quotes
    unsigned char query:1;       // $?
    unsigned char literal:1;     // $%
    unsigned char list:1;        // $,
@@ -60,6 +61,11 @@ unsigned char dollar_expand_query(dollar_expand_t * d)
 unsigned char dollar_expand_underscore(dollar_expand_t * d)
 {                               // Flags
    return d->underscore;
+}
+
+unsigned char dollar_expand_quote(dollar_expand_t * d)
+{                               // Flags
+   return d->quote;
 }
 
 const char *checknum(const char *v)
@@ -121,8 +127,10 @@ dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
       else if (*p == '#')
          d->hash++;
       else if (*p == ',')
+      {
          d->list++;
-      else if (*p == '@')
+         d->quote++;
+      } else if (*p == '@')
          d->file++;
       else if (*p == '*')
       {
@@ -540,6 +548,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
 
       unsigned char literal = dollar_expand_literal(d);
       unsigned char list = dollar_expand_list(d);
+      unsigned char quote = dollar_expand_quote(d);
       const char *name = dollar_expand_name(d);
       char *value = NULL;
       if (!name[1] && *name == '$')
@@ -644,6 +653,10 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
          }
       } else
       {                         // Output value (processed)
+         if (q)
+            quote = 0;
+         else if (quote)
+            fputc(q = '"', f);
          if (!q)
          {                      // Only allow numeric expansion
             const char *v = checknum(value);
@@ -686,6 +699,11 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
                continue;
             }
             fputc(*value++, f);
+         }
+         if (quote)
+         {
+            fputc(q, f);
+            q = 0;
          }
       }
       dollar_expand_free(&d);

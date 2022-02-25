@@ -20,6 +20,7 @@ unsigned char dollar_expand_literal(dollar_expand_t*);	// Flags $%
 unsigned char dollar_expand_list(dollar_expand_t*);	// Flags $,
 unsigned char dollar_expand_query(dollar_expand_t*);	// Flags $?
 unsigned char dollar_expand_underscore(dollar_expand_t*);	// Flags $-
+unsigned char dollar_expand_quote(dollar_expand_t*);	// Flags quoting needed
 
 // SQL query expansion
 typedef char *sqlexpandgetvar_t(const char *);

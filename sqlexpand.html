@@ -10,7 +10,7 @@
 <table>
 	<tr><td><tt>@</tt></td><td>Consider the expanded value as a filename and read the value from that file.</td></tr>
 	<tr><td><tt>-</tt></td><td>Replace all <tt>'</tt>, <tt>"</tt> or <tt>`</tt> with <tt>_</tt> (underscore).</td></tr>
-	<tr><td><tt>,</tt></td><td>If not in quotes, must be list of numbers. If in quotes, then make each tab or comma a quote, comma, quote.</td></tr>
+	<tr><td><tt>,</tt></td><td>Ensures quotes around the expansion. Changes tab or comma to quote,comma,quote to make a clean list.</td></tr>
 	<tr><td><tt>+</tt></td><td>URL encode the value.</td></tr>
 	<tr><td><tt>#</tt></td><td>Made MD5 of value, use <tt>##</tt> for SHA1. Value is hex (lower case).</td></tr>
 	<tr><td><tt>=</tt></td><td>Base64 encode the value. If used with <tt>#</tt> or <tt>##</tt> then this is base64 of the binary hash instead of hex.</td></tr>
