@@ -20,6 +20,7 @@
 <h2>Special variable</h2>
 <p>Instead of the variable name itself there are some special variables.</p>
 <table>
+	<tr><td><tt>$<i>variable</i></tt></td><td>If the variable name itself starts with a <tt>$</tt> then the variable contains a variable name. E.g. If variable <tt>X</tt> contains <tt>A</tt> then <tt>${$X}</tt> is the same as <tt>$A</tt>.</td></tr>
 	<tr><td><tt>$</tt></td><td>Generate the parent PID (deprecated)</td></tr>
 	<tr><td><tt>&lt;</tt></td><td>Read stdin</td></tr>
 	<tr><td><tt>\</tt></td><td>Generate a back tick (so starts/ends back tick quoting if used outside other quotes).</td></tr>

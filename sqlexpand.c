@@ -599,7 +599,22 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
          value = "";
          literal = 2;           // Don't mess about expanding this value
       } else
-         value = getvar(name);
+      {
+         if (*name == '$')
+         {
+            int q = 1;
+            while (name[q] == '$')
+               q++;
+            if (isalpha(name[q]) || name[q] == '_')
+            {
+               name += q;
+               while (q-- && name)
+                  name = getvar(name);
+            }
+         }
+         if (name)
+            value = getvar(name);
+      }
 
       if (value)
       {
