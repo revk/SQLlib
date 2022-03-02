@@ -679,7 +679,8 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
                v = checknum(v + 1);
             if (!v || *v)
             {
-               warn = "Expansion outside any quotes is not a clean number";
+               if (!(flags & SQLEXPANDZERO) || *value)
+                  warn = "Expansion outside any quotes is not a clean number";
                value = (flags & SQLEXPANDZERO) ? "0" : "";
             }
          }
