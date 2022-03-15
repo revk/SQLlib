@@ -105,7 +105,7 @@ dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
       *errp = NULL;
    dollar_expand_t *fail(const char *e) {
       free(d);
-      if (errp && !*errp)
+      if (e && errp && !*errp)
          *errp = e;
       return NULL;
    }
@@ -161,7 +161,7 @@ dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
             e++;
       p = e;
       if (e == s)
-         return fail("No variable name");
+         return fail(NULL);
       d->name = strndup(s, (int) (e - s));
    }
    // Index
@@ -541,6 +541,11 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
       p++;
       const char *e;
       d = dollar_expand_parse(&p, &e);
+      if (!d && !e)
+      {                         // Not sensible expansion
+         fputc('$', f);
+         continue;
+      }
       if (!d)
          return fail(e);
       if (e)
@@ -551,10 +556,8 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
       unsigned char quote = dollar_expand_quote(d);
       const char *name = dollar_expand_name(d);
       char *value = NULL;
-      if (!name[1] && *name == '$')
+      if (!name[1] && *name == '$' && (flags & SQLEXPANDPPID))
       {
-         if (!(flags & SQLEXPANDPPID))
-            return fail("$$ not allowed");
          if (asprintf(&malloced, "%d", getppid()) < 0)
             err(1, "malloc");
          value = malloced;
@@ -596,6 +599,11 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
          else if (!q)
             q = '`';
          fputc('`', f);
+         value = "";
+         literal = 2;           // Don't mess about expanding this value
+      } else if (!name[1] && *name == '$')
+      {                         // Literal $
+         fputc('$', f);
          value = "";
          literal = 2;           // Don't mess about expanding this value
       } else
