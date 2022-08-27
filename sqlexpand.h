@@ -3,6 +3,8 @@
 // Copyright ©2022 Andrews & Arnold Ltd, Adrian Kennard
 // This software is provided under the terms of the GPL - see LICENSE file for more details
 
+#define	SQLEXPANDPREFIX	"_-,+#=%{$</\\"	// Characters allowed after $ to be considered valid for expansion (in addition to isalpha)
+
 // Low level dollar expansion
 typedef struct dollar_expand_s dollar_expand_t;
 
