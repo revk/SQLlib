@@ -68,13 +68,19 @@ SQL_RES *sql_query_use(SQL * sql, char *q);     // does query and fetch result a
 SQL_RES *sql_query_store(SQL * sql, char *q);   // does query and fetch (store) result and returns 0 if no result
 int __attribute__((warn_unused_result)) sql_query(SQL * sql, char *q);  // sql query
 
-char *sql_printf(char *, ...);  // Formatted print, return malloc'd string
+char *sql_printf(char *, ...);  // Formatted print, return malloc'd string - usually used in the following
 void sql_safe_query_free(SQL * sql, char *);    // does query and aborts if error, frees q
+#define sql_sage_query_f(sqlp,...) sql_safe_query_free(sqlp,sql_printf(__VA_ARGS__))
 SQL_RES *sql_safe_query_use_free(SQL * sql, char *);    // does query and fetch result and aborts if error or no result, frees q
+#define	sql_safe_query_use_f(sqlp,...) sql_safe_query_use_free(sqlp,sql_printf(__VA_ARGS__))
 SQL_RES *sql_safe_query_store_free(SQL * sql, char *);  // does query and fetch (store) result and aborts if error or no result, frees q
+#define sql_safe_query_store_f(sqlp,...) sql_safe_query_store_free(sqlp,sql_printf(__VA_ARGS__))
 SQL_RES *sql_query_use_free(SQL * sql, char *); // does query and fetch result and returns 0 if no result, frees q
+#define sql_query_use_f(sqlp,...) sql_query_use_free(sqlp,sql_prinf(__VA_ARGS__))
 SQL_RES *sql_query_store_free(SQL * sql, char *);       // does query and fetch (store) result and returns 0 if no result, frees q
+#define sql_query_store_f(sqlp,...) sql_query_store_free(sqlp,sql_printf(__VA_ARGS__))
 int __attribute__((warn_unused_result)) sql_query_free(SQL * sql, char *);      // sql query, frees q
+#define sql_query_f(sqlp,...) sql_query_free(sqlp,sql_printf(__VA_ARGS__))
 
 char *sql_safe_query_value(SQL *, char *);      // does query, returns strdup of first column of first row of result, or NULL
 char *sql_safe_query_value_free(SQL *, char *); // does query, returns strdup of first column of first row of result, or NULL

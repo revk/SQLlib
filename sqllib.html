@@ -23,6 +23,7 @@
 </table>
 <h3>Example usage</h3>
 <p>Typical usage of <i>sql_printf</i> is as an argument to one of the query functions ending <i>_free</i>. The <i>sql_printf</i> function returns a malloc'd space for the output and the <i>_free</i> variant of the query frees that space. e.g. <tt>sql_safe_query_free(&amp;sql,sql_printf("UPDATE `fred` SET `q`=%#s WHERE ID=%d",q,id));</tt> though obviously the result could be assigned to a char*  and later passed to <i>free()</i> perhaps after printing, etc.</p>
+<p>In addition to the <tt>_free</tt> functions, which free the argument after use, there are also <tt>_f</tt> versions which expand to use of <tt>_free</tt> with <tt>sql_printf</tt> just to save space.</p>
 <p>The <i>sql_sprintf</i> function is normally used to build up a string with multiple prints, and then pass to a query function ending <i>_s</i>. To use this start by declaring an empty string object, e.g. <tt>sql_query_string s = { };</tt> and then print to the string using <i>sql_sprintf</i>, e.g. <tt>sql_sprintf(&amp;s," WHERE ID=%d",id);</tt></p>
 <p>Finally when you have done one or more <i>sql_sprintf</i> calls using the same string (e.g. <tt>&amp;s</tt>) you can use this as an argument to a query, e.g. <tt>sql_safe_query_s(&amp;sql,&amp;s);</tt> which also frees the allocated string.</p>
 <p>In some cases you want to compose a string using <i>sql_sprint</i> and not use the query call. You can access the string, e.g. to print, using <i>.query</i>, e.g. <tt>printf("%s;\n",s.query);</tt> and then freeing the string <tt>free(s.query);</tt> manually.</p>
