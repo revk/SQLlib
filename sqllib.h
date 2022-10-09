@@ -70,7 +70,7 @@ int __attribute__((warn_unused_result)) sql_query(SQL * sql, char *q);  // sql q
 
 char *sql_printf(char *, ...);  // Formatted print, return malloc'd string - usually used in the following
 void sql_safe_query_free(SQL * sql, char *);    // does query and aborts if error, frees q
-#define sql_sage_query_f(sqlp,...) sql_safe_query_free(sqlp,sql_printf(__VA_ARGS__))
+#define sql_safe_query_f(sqlp,...) sql_safe_query_free(sqlp,sql_printf(__VA_ARGS__))
 SQL_RES *sql_safe_query_use_free(SQL * sql, char *);    // does query and fetch result and aborts if error or no result, frees q
 #define	sql_safe_query_use_f(sqlp,...) sql_safe_query_use_free(sqlp,sql_printf(__VA_ARGS__))
 SQL_RES *sql_safe_query_store_free(SQL * sql, char *);  // does query and fetch (store) result and aborts if error or no result, frees q
