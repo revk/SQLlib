@@ -78,7 +78,7 @@ void dosql(const char *origquery)
    int l = strlen(query);
    while (l && isspace(query[l - 1]))
       l--;
-   if (l && query[l - 1] == ';')
+   if (!multiple && l && query[l - 1] == ';')
    {
       l--;
       warnx("Trailing ; on query %s", origquery);
