@@ -39,3 +39,4 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
 #define	SQLEXPANDPPID 		8       // Handle $$ as parent pid
 #define	SQLEXPANDZERO		16      // Handle missing unquoted expansion as a number (0)
 #define	SQLEXPANDBLANK		32      // Handle missing expansion as a blank (no error or warning)
+#define	SQLEXPANDMULTIPLE	64      // Allow multiple SQL commands, dangerous, really, don't do this

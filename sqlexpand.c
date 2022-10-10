@@ -530,7 +530,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
             return fail("Comment (/*) in SQL");
          if (*p == '#')
             return fail("Comment (#) in SQL");
-         if (*p == ';')
+         if (*p == ';' && !(flags & SQLEXPANDMULTIPLE))
             return fail("Multiple commands in one SQL");
       }
       if (*p != '$')
