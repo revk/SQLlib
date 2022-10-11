@@ -53,7 +53,6 @@ int ret = 0;
 int linesplit = 0;
 int safe = 0;
 int unsafe = 0;
-int multiple = 0;
 #ifndef	NOXML
 int xmlout = 0;
 #endif
@@ -78,7 +77,7 @@ void dosql(const char *origquery)
    int l = strlen(query);
    while (l && isspace(query[l - 1]))
       l--;
-   if (!multiple && l && query[l - 1] == ';')
+   if (l && query[l - 1] == ';')
    {
       l--;
       warnx("Trailing ; on query %s", origquery);
@@ -88,7 +87,7 @@ void dosql(const char *origquery)
       return;
    if (!noexpand)
    {
-      query = sqlexpand(query, getenv, &e, &ep, SQLEXPANDSTDIN | SQLEXPANDFILE | SQLEXPANDBLANK | SQLEXPANDUNSAFE | SQLEXPANDZERO | (multiple ? SQLEXPANDMULTIPLE : 0));
+      query = sqlexpand(query, getenv, &e, &ep, SQLEXPANDSTDIN | SQLEXPANDFILE | SQLEXPANDBLANK | SQLEXPANDUNSAFE | SQLEXPANDZERO);
       if (!query)
          errx(1, "Expand failed: %s\n[%s]\n[%s]", e, origquery, ep);
       if (e)
@@ -369,7 +368,6 @@ int main(int argc, const char *argv[])
       { "changes", 'c', POPT_ARG_NONE, &reportchanges, 0, "Report how many rows changes", 0 },
       { "safe", 0, POPT_ARG_NONE, &safe, 0, "Use safe mode (default is to warn but continue)", 0 },
       { "unsafe", 0, POPT_ARG_NONE, &unsafe, 0, "Use unsafe mode (default is to warn but continue)", 0 },
-      { "multiple", 0, POPT_ARG_NONE, &multiple, 0, "Allow multiple commands, i.e. ;, but please don't", 0 },
       { "status-changes", 'C', POPT_ARG_NONE, &statuschanges, 0, "Return non zero status if no changes were made", 0 },
       { "no-expand", 'x', POPT_ARG_NONE, &noexpand, 0, "Don't expand env variables", 0 },
       { "expand", 0, POPT_ARG_NONE, &expand, 0, "Just expand the queries and write to stdout", 0 },

@@ -530,7 +530,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
             return fail("Comment (/*) in SQL");
          if (*p == '#')
             return fail("Comment (#) in SQL");
-         if (*p == ';' && !(flags & SQLEXPANDMULTIPLE))
+         if (*p == ';')
             return fail("Multiple commands in one SQL");
       }
       if (*p != '$')
@@ -757,7 +757,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
          q = *p;
       else if (!q && (*p == '#' || (*p == '/' && p[1] == '*') || (*p == '-' && p[1] == '-' && (!p[2] || isspace(p[2])))))
          return fail("Comment found in expanded query");
-      else if (!q && *p == ';' && !(flags & SQLEXPANDMULTIPLE))
+      else if (!q && *p == ';')
          return fail("Semi colon found in expanded query");
       p++;
    }
