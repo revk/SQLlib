@@ -356,14 +356,17 @@ char *dollar_expand_process(dollar_expand_t * d, const char *value, const char *
       const char *v = value;
       while (*v)
       {
+#if 0                           // + is valid in query string expand, but not in path encoding, so use %20 which is valid in both
          if (*v == ' ' && d->url == 1)
             fputc('+', o);
-         else if (*v <= ' ' || strchr("+=%\"'&<>?#!", *v) || (d->url > 1 && *v == '/'))
-         {
+         else
+#endif
+         if (*v <= ' ' || strchr("+=%\"'&<>?#!$()[]*,;", *v) || (d->url > 1 && *v == '/'))
+         {                      // The list of specials includes more than requires in RFC, but does not include / deliberately unless double expanding
             fputc('%', o);
             int u = d->url;
             while (u-- > 1)
-               fprintf(o, "25");
+               fprintf(o, "25");        // Nested escaping, i.e. %25xx decodes to %xx
             fprintf(o, "%02X", *v);
          } else
             fputc(*v, o);
