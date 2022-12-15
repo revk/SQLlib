@@ -26,7 +26,7 @@ struct dollar_expand_s {
    unsigned char query:1;       // $?
    unsigned char literal:1;     // $%
    unsigned char list:1;        // $,
-   unsigned char file:1;        // $*
+   unsigned char file:1;        // $* (was $*)
    unsigned char url:2;         // $+
    unsigned char hash:2;        // $#
    unsigned char base64:1;      // $=
