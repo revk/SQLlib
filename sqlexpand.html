@@ -19,10 +19,11 @@
 </table>
 <p>Only use <tt>$%<i>variable</i></tt> with great care, and ensure any construction of the variable value uses <tt>sqlexpand</tt> to safely escape what is being set.</p>
 <h2>Special variable</h2>
-<p>Instead of the variable name itself there are some special variables.</p>
+<p>Instead of the variable name itself there are some special variables. Some of these match a prefix, and so these work where not followed by a letter or underscore (use <tt>{}</tt> if needed, e.g. <tt>xx${@}xx</tt>).</p>
 <table>
 	<tr><td><tt>$<i>variable</i></tt></td><td>If the variable name itself starts with a <tt>$</tt> then the variable contains a variable name. E.g. If variable <tt>X</tt> contains <tt>A</tt> then <tt>${$X}</tt> is the same as <tt>$A</tt>.</td></tr>
 	<tr><td><tt>$</tt></td><td>Generate the parent PID (deprecated)</td></tr>
+	<tr><td><tt>@</tt></td><td>Generate a timestamp of current directory</td></tr>
 	<tr><td><tt>&lt;</tt></td><td>Read stdin</td></tr>
 	<tr><td><tt>\</tt></td><td>Generate a back tick (so starts/ends back tick quoting if used outside other quotes).</td></tr>
 	<tr><td><tt>/</tt></td><td>Generate a single quote (so starts/ends single quoting if used outside other quotes).</td></tr>

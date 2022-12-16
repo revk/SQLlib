@@ -148,6 +148,11 @@ dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
          break;
       p++;
    }
+   if (!isalpha(*p) && *p != '_')
+   {                            // Prefixes only, so could be a special like $@ or something like that
+      memset(d, 0, sizeof(*d));
+      p = *sourcep;
+   }
    {                            // Variable name
       const char *s = p,
           *e = p;               // The variable name
@@ -572,7 +577,7 @@ char *sqlexpand(const char *query, sqlexpandgetvar_t * getvar, const char **errp
             when = s.st_mtime;
          else
             when = time(0);
-         if (asprintf(&malloced, "%ld", when) < 0)
+         if (asprintf(&malloced, "%ld", when) > 0)
             value = malloced;
       } else if (!name[1] && *name == '<')
       {
