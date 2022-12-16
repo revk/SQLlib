@@ -151,7 +151,7 @@ dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
    if (!isalpha(*p) && *p != '_')
    {                            // Prefixes only, so could be a special like $@ or something like that
       memset(d, 0, sizeof(*d));
-      p = *sourcep;
+      p = (*sourcep + (curly ? 1 : 0));
    }
    {                            // Variable name
       const char *s = p,
@@ -168,6 +168,7 @@ dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
       if (e == s)
          return fail(NULL);
       d->name = strndup(s, (int) (e - s));
+      warnx("name=[%s]", d->name);
    }
    // Index
    if (*p == '[')
