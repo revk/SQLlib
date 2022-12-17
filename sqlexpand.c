@@ -168,7 +168,6 @@ dollar_expand_t *dollar_expand_parse(const char **sourcep, const char **errp)
       if (e == s)
          return fail(NULL);
       d->name = strndup(s, (int) (e - s));
-      warnx("name=[%s]", d->name);
    }
    // Index
    if (*p == '[')
