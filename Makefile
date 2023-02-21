@@ -13,9 +13,10 @@ OPTS=-D_GNU_SOURCE --std=gnu99 -g -Wall -funsigned-char -lpopt
 all: sqllib.o sqlexpand.o sql sqlwrite sqledit sqlexpand
 
 stringdecimal/stringdecimal.o:
+	git submodule update --recursive
 	make -C stringdecimal
 
-sqllib.o: sqllib.c sqllib.h Makefile
+sqllib.o: sqllib.c sqllib.h Makefile stringdecimal/stringdecimal.o
 	gcc -g -O -c -o $@ $< -fPIC ${OPTS} -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER}
 
 sql: sql.c sqllib.o sqllib.h sqlexpand.o sqlexpand.h stringdecimal/stringdecimal.o
