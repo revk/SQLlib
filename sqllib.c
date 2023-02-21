@@ -337,6 +337,16 @@ char sql_back_s(sql_string_t * q)
    return r;
 }
 
+void sql_seek_s(sql_string_t * q, size_t pos)
+{                               // Seek to a position
+   if (!sql_len_s(q))
+      return;
+   if (q->f)
+      fseek(q->f, pos, SEEK_SET);
+   else if (q->len > pos)
+      q->string[q->len = pos] = 0;
+}
+
 // Freeing versions for use with malloc'd queries (e.g. from sql_printf...
 void sql_safe_query_s(SQL * sql, sql_string_t * q)
 {
