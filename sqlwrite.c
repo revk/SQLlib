@@ -174,7 +174,7 @@ int main(int argc, const char *argv[])
             ok = 0;             // missing part of a key
          else
          {                      // unique key
-            if (!where.query)
+            if (!sql_len_s(&where))
                sql_sprintf(&where, "WHERE ");
             else
                sql_sprintf(&where, " AND ");
@@ -194,9 +194,9 @@ int main(int argc, const char *argv[])
          sql_free_s(&where);
    }
    sql_free_result(res);
-   if (!where.query)
+   if (!sql_len_s(&where))
       return fprintf(stderr, "Could not find unique key set for which we have data\n");
-   res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `%#S` %s", sqltable, where.query));
+   res = sql_safe_query_store_free(&sql, sql_printf("SELECT * FROM `%#S` %s", sqltable, sql_close_s(&where)));
    row = sql_fetch_row(res);
    field = sql_fetch_field(res);
    sql_free_s(&query);
@@ -313,8 +313,9 @@ int main(int argc, const char *argv[])
    if (!row)
       sql_sprintf(&query, ")");
    else
-      sql_sprintf(&query, " %s", where.query);
+      sql_sprintf(&query, " %s", sql_close_s(&where));
    sql_free_result(res);
+   sql_free_s(&where);
    if (s == ',' && !showdiff)
       sql_safe_query_s(&sql, &query);
    int changed = sql_affected_rows(&sql);

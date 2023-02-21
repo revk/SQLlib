@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "stringdecimal/stringdecimal.h"
 #include "sqllib.h"
 
 int sqldebug = 0;               // Set 1 to print queries & errors, 2 for just errors, -ve to not do any actual updates just print
@@ -182,6 +183,8 @@ int sql_safe_select_db(SQL * sql, const char *db)
 
 void sql_safe_query(SQL * sql, char *q)
 {
+   if (!q)
+      return;
    if (sqldebug < 0)
    {                            // don't do
       if (sqlsyslogquery >= 0)
@@ -204,6 +207,8 @@ void sql_safe_query(SQL * sql, char *q)
 
 SQL_RES *sql_safe_query_use(SQL * sql, char *q)
 {
+   if (!q)
+      return NULL;
    SQL_RES *r;
    sql_safe_query(sql, q);
    r = sql_use_result(sql);
@@ -218,6 +223,8 @@ SQL_RES *sql_safe_query_use(SQL * sql, char *q)
 
 SQL_RES *sql_safe_query_store(SQL * sql, char *q)
 {
+   if (!q)
+      return NULL;
    SQL_RES *r;
    if (sql_query(sql, q))
    {
@@ -238,13 +245,17 @@ SQL_RES *sql_safe_query_store(SQL * sql, char *q)
 
 SQL_RES *sql_query_use(SQL * sql, char *q)
 {
+   if (!q)
+      return NULL;
    if (sql_query(sql, q))
-      return 0;
+      return NULL;
    return sql_use_result(sql);
 }
 
 SQL_RES *sql_query_store(SQL * sql, char *q)
 {
+   if (!q)
+      return NULL;
    if (sql_query(sql, q))
       return 0;
    return sql_store_result(sql);
@@ -252,6 +263,8 @@ SQL_RES *sql_query_store(SQL * sql, char *q)
 
 int sql_query(SQL * sql, char *q)
 {
+   if (!q)
+      return 0;
    struct timeval a = { }, b = {
    };
    gettimeofday(&a, NULL);
@@ -275,75 +288,92 @@ int sql_query(SQL * sql, char *q)
    return r;
 }
 
-void sql_free_s(sql_string_t * q)
-{                               // Free string
-   if (q->query)
-      free(q->query);
-   q->query = NULL;
-   q->len = 0;
-   q->ptr = 0;
+char *sql_close_s(sql_string_t * q)
+{                               // Close a string - return string (malloc'd)
+   if (!q)
+      return NULL;
+   if (q->f)
+   {
+      fclose(q->f);
+      q->f = NULL;
+   }
+   return q->string;
 }
 
-char sql_back_s(sql_string_t * q)
-{                               // Remove last character
-   if (!q || !q->query || !q->ptr)
+size_t sql_len_s(sql_string_t * q)
+{
+   if (!q)
       return 0;
-   q->ptr--;
-   char r = q->query[q->ptr];
-   q->query[q->ptr] = 0;
+   if (q->f)
+      fflush(q->f);
+   return q->len;
+}
+
+void sql_open_s(sql_string_t * q)
+{                               // Open (or continue) a string
+   if (!q || q->f)
+      return;                   // already open, or not valid
+   sql_free_s(q);
+   q->f = open_memstream(&q->string, &q->len);
+}
+
+void sql_free_s(sql_string_t * q)
+{                               // Free string
+   sql_close_s(q);
+   free(q->string);
+   q->string = NULL;
+   q->len = 0;
+}
+
+char sql_close_back_s(sql_string_t * q)
+{                               // End string, and remove last character
+   if (!sql_len_s(q))
+      return 0;
+   sql_close_s(q);
+   q->len--;
+   char r = q->string[q->len];
+   q->string[q->len] = 0;
    return r;
 }
 
 // Freeing versions for use with malloc'd queries (e.g. from sql_printf...
 void sql_safe_query_s(SQL * sql, sql_string_t * q)
 {
-   if (!q || !q->query)
-      return;
-   sql_safe_query(sql, q->query);
+   sql_safe_query(sql, sql_close_s(q));
    sql_free_s(q);
 }
 
 SQL_RES *sql_safe_query_use_s(SQL * sql, sql_string_t * q)
 {
-   if (!q || !q->query)
-      return 0;
-   SQL_RES *r = sql_safe_query_use(sql, q->query);
+   SQL_RES *r = sql_safe_query_use(sql, sql_close_s(q));
    sql_free_s(q);
    return r;
 }
 
 SQL_RES *sql_safe_query_store_s(SQL * sql, sql_string_t * q)
 {
-   if (!q || !q->query)
-      return 0;
-   SQL_RES *r = sql_safe_query_store(sql, q->query);
+   SQL_RES *r = sql_safe_query_store(sql, sql_close_s(q));
    sql_free_s(q);
    return r;
 }
 
 SQL_RES *sql_query_use_s(SQL * sql, sql_string_t * q)
 {
-   if (!q || !q->query)
-      return 0;
-   SQL_RES *r = sql_query_use(sql, q->query);
+   SQL_RES *r = sql_query_use(sql, sql_close_s(q));
    sql_free_s(q);
    return r;
 }
 
 SQL_RES *sql_query_store_s(SQL * sql, sql_string_t * q)
 {
-   if (!q || !q->query)
-      return 0;
-   SQL_RES *r = sql_query_store(sql, q->query);
+   SQL_RES *r = sql_query_store(sql, sql_close_s(q));
    sql_free_s(q);
    return r;
 }
 
 int sql_query_s(SQL * sql, sql_string_t * q)
 {
-   if (!q || !q->query)
-      return 0;
-   int r = sql_query(sql, q->query);
+   int r = sql_query(sql, sql_close_s(q));
    sql_free_s(q);
    return r;
 }
@@ -434,14 +464,15 @@ char *sql_safe_query_value_free(SQL * sql, char *q)
 
 void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
 {                               // Formatted print, append to query string
+   if (!s)
+      return;
+   sql_open_s(s);
    while (*f)
    {
-      // check enough space for anothing but a string espansion...
-      if (s->ptr + 100 >= s->len && !(s->query = realloc(s->query, s->len += 1000)))
-         errx(255, "malloc at line %d", __LINE__);
+      // check enough space for anything but a string expansion...
       if (*f != '%')
       {
-         s->query[s->ptr++] = *f++;
+         fputc(*f++, s->f);
          continue;
       }
       // formatting  
@@ -453,6 +484,7 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
       char flagspace = 0;
       char flagzero = 0;
 #endif
+      const char *flagformat = NULL;
       char flagfree = 0;
       char flagalt = 0;
       char flagleft = 0;
@@ -483,7 +515,13 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
             flagalt = 1;
          else if (*f == '-')
             flagleft = 1;
-         else
+         else if (*f == '[')
+         {
+            f++;
+            flagformat = f;
+            while (*f && *f != ']')
+               f++;
+         } else
             break;
          f++;
       }
@@ -529,20 +567,48 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
 
       if (*f == '%')
       {                         // literal!
-         s->query[s->ptr++] = *f++;
+         fputc(*f++, s->f);
          continue;
       }
 
       if (!strchr("diouxXeEfFgGaAcsCSpnmTUBZ", *f) || f - base > 20)
       {                         // cannot handle, output as is
          while (base < f)
-            s->query[s->ptr++] = *base++;
+            fputc(*base++, s->f);
          continue;
+      }
+      void add(char a) {        // add an escaped character
+         if (flagalt && a == '\n')
+         {
+            fputc('\\', s->f);
+            fputc('n', s->f);
+         } else if (flagalt && a == '\b')
+         {
+            fputc('\\', s->f);
+            fputc('b', s->f);
+         } else if (flagalt && a == '\r')
+         {
+            fputc('\\', s->f);
+            fputc('r', s->f);
+         } else if (flagalt && a == '\t')
+         {
+            fputc('\\', s->f);
+            fputc('t', s->f);
+         } else if (flagalt && a == 26)
+         {
+            fputc('\\', s->f);
+            fputc('Z', s->f);
+         } else if (a)
+         {
+            if (flagalt && strchr("\\\"'", a))
+               fputc('\\', s->f);
+            fputc(a, s->f);
+         }
       }
       char fmt[22];
       memmove(fmt, base, f - base + 1);
       fmt[f - base + 1] = 0;
-      if (strchr("scTUBSZ", *f))
+      if (strchr("scTUBSZD", *f))
       {                         // our formatting
          if (width < 0)
             width = va_arg(ap, int);
@@ -557,7 +623,7 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
                if (!a)
                {
                   if (flagalt)
-                     s->ptr += sprintf(s->query + s->ptr, "NULL");
+                     fprintf(s->f, "NULL");
                   break;
                }
                char *aa = a;    // for freeing later
@@ -575,35 +641,19 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
                   q = l;
                if (width && l < width)
                   q += width - l;
-               if (s->ptr + q + 100 >= s->len && !(s->query = realloc(s->query, s->len += q + 1000)))
-                  errx(255, "malloc at line %d", __LINE__);
                if (flagalt && *f == 's')
-                  s->query[s->ptr++] = '\'';
+                  fputc('\'', s->f);
                if (width && !flagleft && l < width)
                {                // pre padding
                   while (l < width)
                   {
-                     s->query[s->ptr++] = ' ';
+                     fputc(' ', s->f);
                      l++;
                   }
                }
                while (*a)
                {
-                  if (flagalt && *a == '\n')
-                  {
-                     s->query[s->ptr++] = '\\';
-                     s->query[s->ptr++] = 'n';
-                  } else if (flagalt && *a == '\r')
-                  {
-                     s->query[s->ptr++] = '\\';
-                     s->query[s->ptr++] = 'r';
-                  } else
-                  {
-                     if (flagalt && (*a == '\'' || *a == '\\' || *a == '`' || *a == '"'))
-                        s->query[s->ptr++] = '\\';
-                     s->query[s->ptr++] = *a;
-                  }
-                  a++;
+                  add(*a++);
                   if (precision > 0 && !--precision)
                      break;     // length limited
                }
@@ -611,12 +661,12 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
                {                // post padding
                   while (l < width)
                   {
-                     s->query[s->ptr++] = ' ';
+                     fputc(' ', s->f);
                      l++;
                   }
                }
                if (flagalt && *f == 's')
-                  s->query[s->ptr++] = '\'';
+                  fputc('\'', s->f);
                if (flagfree)
                   free(aa);
             }
@@ -631,95 +681,40 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
                else
                   a = va_arg(ap, int);
                if (flagalt)
-                  s->query[s->ptr++] = '\'';
-               if (flagalt && a == '\n')
-               {
-                  s->query[s->ptr++] = '\\';
-                  s->query[s->ptr++] = 'n';
-               } else if (flagalt && a == '\b')
-               {
-                  s->query[s->ptr++] = '\\';
-                  s->query[s->ptr++] = 'b';
-               } else if (flagalt && a == '\r')
-               {
-                  s->query[s->ptr++] = '\\';
-                  s->query[s->ptr++] = 'r';
-               } else if (flagalt && a == '\t')
-               {
-                  s->query[s->ptr++] = '\\';
-                  s->query[s->ptr++] = 't';
-               } else if (flagalt && a == 26)
-               {
-                  s->query[s->ptr++] = '\\';
-                  s->query[s->ptr++] = 'Z';
-               } else if (a)
-               {
-                  if (flagalt && strchr("\\\"'", a))
-                     s->query[s->ptr++] = '\\';
-                  s->query[s->ptr++] = a;
-               }
+                  fputc('\'', s->f);
+               add(a);
                if (flagalt)
-                  s->query[s->ptr++] = '\'';
+                  fputc('\'', s->f);
             }
             break;
          case 'Z':             // time (utc)
+         case 'T':             // time (local)
+         case 'U':             // time (utc)
             {
                time_t a = va_arg(ap, time_t);
                if (flagalt)
-                  s->query[s->ptr++] = '\'';
+                  fputc('\'', s->f);
                if (!a)
-                  s->ptr += sprintf(s->query + s->ptr, "0000-00-00");
+                  fprintf(s->f, "0000-00-00");
                else
                {
-                  struct tm *t = gmtime(&a);
-                  int l = sprintf(s->query + s->ptr, "%04u-%02u-%02u %02u:%02u:%02u", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-                                  t->tm_hour, t->tm_min, t->tm_sec);
+                  struct tm *t;
+                  if (*f == 'T')
+                     t = localtime(&a);
+                  else
+                     t = gmtime(&a);
+                  char T[100];
+                  int l = snprintf(T, sizeof(T), "%04u-%02u-%02u %02u:%02u:%02u", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+                                   t->tm_hour, t->tm_min, t->tm_sec);
+                  if (l > sizeof(T) - 1)
+                     l = sizeof(T - 1);
                   if (width > 0 && l > width)
                      l = width;
-                  s->ptr += l;
+                  T[l] = 0;
+                  fprintf(s->f, "%s", T);
                }
                if (flagalt)
-                  s->query[s->ptr++] = '\'';
-            }
-            break;
-         case 'T':             // time
-            {
-               time_t a = va_arg(ap, time_t);
-               if (flagalt)
-                  s->query[s->ptr++] = '\'';
-               if (!a)
-                  s->ptr += sprintf(s->query + s->ptr, "0000-00-00");
-               else
-               {
-                  struct tm *t = localtime(&a);
-                  int l = sprintf(s->query + s->ptr, "%04u-%02u-%02u %02u:%02u:%02u", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-                                  t->tm_hour, t->tm_min, t->tm_sec);
-                  if (width > 0 && l > width)
-                     l = width;
-                  s->ptr += l;
-               }
-               if (flagalt)
-                  s->query[s->ptr++] = '\'';
-            }
-            break;
-         case 'U':             // time (UTC)
-            {
-               time_t a = va_arg(ap, time_t);
-               if (flagalt)
-                  s->query[s->ptr++] = '\'';
-               if (!a)
-                  s->ptr += sprintf(s->query + s->ptr, "0000-00-00");
-               else
-               {
-                  struct tm *t = gmtime(&a);
-                  int l = sprintf(s->query + s->ptr, "%04u-%02u-%02u %02u:%02u:%02u", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-                                  t->tm_hour, t->tm_min, t->tm_sec);
-                  if (width > 0 && l > width)
-                     l = width;
-                  s->ptr += l;
-               }
-               if (flagalt)
-                  s->query[s->ptr++] = '\'';
+                  fputc('\'', s->f);
             }
             break;
          case 'B':             // bool
@@ -732,20 +727,28 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
                else
                   a = va_arg(ap, int);
                if (flagalt)
-                  s->ptr += sprintf(s->query + s->ptr, a ? "'Y'" : "'N'");
+                  fprintf(s->f, a ? "'Y'" : "'N'");
                else
-                  s->ptr += sprintf(s->query + s->ptr, a ? "TRUE" : "FALSE");
+                  fprintf(s->f, a ? "TRUE" : "FALSE");
+            }
+            break;
+         case 'D':             // Stringdecimal
+            {
+               sd_p a = va_arg(ap, sd_p);
+             char *v = sd_output_f(a, round: flagformat ? *flagformat : 'B', places:(precision < 0 ? 0 : precision));
+               fprintf(s->f, v ? : "NULL");
+               free(v);
             }
             break;
          }
       } else                    // use standard format (non portable code, assumes ap is moved on)
       {
 #ifdef NONPORTABLE
-         s->ptr += vsnprintf(s->query + s->ptr, s->len - s->ptr, fmt, ap);
+         vfprintf(s->f, fmt, ap);
 #else
          va_list xp;
          va_copy(xp, ap);
-         s->ptr += vsnprintf(s->query + s->ptr, s->len - s->ptr, fmt, xp);
+         vfprintf(s->f, fmt, xp);
          va_end(xp);
          // move pointer forward
          if (width < 0)
@@ -777,8 +780,6 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
       }
       f++;
    }
-   if (s->query)
-      s->query[s->ptr] = 0;
 }
 
 void sql_sprintf(sql_string_t * s, const char *f, ...)
@@ -796,7 +797,7 @@ char *sql_printf(char *f, ...)
    va_start(ap, f);
    sql_vsprintf(&s, f, ap);
    va_end(ap);
-   return s.query;
+   return sql_close_s(&s);
 }
 
 int sql_colnum(SQL_RES * res, const char *fieldname)

@@ -41,9 +41,9 @@
 
 // Types
 typedef struct {
-   char *query;                 // malloc'd space
-   int ptr;                     // pointer to end (to zero byte)
-   int len;                     // malloc'd length
+   char *string; // Malloc'd space
+   size_t len; // Len of string
+   FILE *f;	// open_memstream for query/len
 } sql_string_t;
 typedef sql_string_t sql_query_string;  // old name
 
@@ -88,13 +88,16 @@ char *sql_safe_query_value_free(SQL *, char *); // does query, returns strdup of
 void sql_vsprintf(sql_string_t *, const char *, va_list);       // Formatted print, append to query string
 void sql_sprintf(sql_string_t *, const char *, ...);    // Formatted print, append to query string
 void sql_safe_query_s(SQL * sql, sql_string_t *);       // does query and aborts if error, frees and clears query string
+void sql_open_s(sql_string_t*);	// Open or continue an sql_string_t
+char *sql_close_s(sql_string_t*);	// Close an sql_string_t, return the string
+size_t sql_len_s(sql_string_t*);	// Return current length of string - does not close it
 SQL_RES *sql_safe_query_use_s(SQL * sql, sql_string_t *);       // does query and fetch result and aborts if error or no result, frees and clears query string
 SQL_RES *sql_safe_query_store_s(SQL * sql, sql_string_t *);     // does query and fetch result and aborts if error or no result, frees and clears query string
 SQL_RES *sql_query_use_s(SQL * sql, sql_string_t *);    // does query and fetch result and returns 0 if no result, frees and clears query string
 SQL_RES *sql_query_store_s(SQL * sql, sql_string_t *);  // does query and fetch result and returns 0 if no result, frees and clears query string
 int __attribute__((warn_unused_result)) sql_query_s(SQL * sql, sql_string_t *); // sql query, frees and clears query string
 void sql_free_s(sql_string_t *);        // free a query that has been created
-char sql_back_s(sql_string_t *);        // Remove last character (and return it)
+char sql_close_back_s(sql_string_t *);        // Close string, and remove last character (and return it)
 
 int sql_colnum(SQL_RES *, const char *fieldname);       // Return row number for field name, -1 for not available. Case insensitive
 const char *sql_colname(SQL_RES * res, int c);  // Name of column by number
