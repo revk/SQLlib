@@ -97,7 +97,7 @@ SQL_RES *sql_query_use_s(SQL * sql, sql_string_t *);    // does query and fetch 
 SQL_RES *sql_query_store_s(SQL * sql, sql_string_t *);  // does query and fetch result and returns 0 if no result, frees and clears query string
 int __attribute__((warn_unused_result)) sql_query_s(SQL * sql, sql_string_t *); // sql query, frees and clears query string
 void sql_free_s(sql_string_t *);        // free a query that has been created
-char sql_close_back_s(sql_string_t *);        // Close string, and remove last character (and return it)
+char sql_back_s(sql_string_t *);        // remove last character and return it, don't close
 
 int sql_colnum(SQL_RES *, const char *fieldname);       // Return row number for field name, -1 for not available. Case insensitive
 const char *sql_colname(SQL_RES * res, int c);  // Name of column by number

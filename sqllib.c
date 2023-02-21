@@ -325,14 +325,15 @@ void sql_free_s(sql_string_t * q)
    q->len = 0;
 }
 
-char sql_close_back_s(sql_string_t * q)
-{                               // End string, and remove last character
+char sql_back_s(sql_string_t * q)
+{                               // Remove last character and return it, don't close
    if (!sql_len_s(q))
       return 0;
-   sql_close_s(q);
-   q->len--;
-   char r = q->string[q->len];
-   q->string[q->len] = 0;
+   char r = q->string[q->len - 1];
+   if (q->f)
+      fseek(q->f, -1, SEEK_CUR);        // Move back but don't close
+   else
+      q->string[--q->len] = 0;  // Already allocated and closed, so just take off end string
    return r;
 }
 
