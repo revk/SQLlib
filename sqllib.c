@@ -817,6 +817,7 @@ void sql_sprintf(sql_s_t * s, const char *f, ...)
 char *sql_printf(char *f, ...)
 {                               // Formatted print, return malloc'd string
    sql_s_t s = { 0 };
+   warnx("sql_printf %llX",s.dummy);
    va_list ap;
    va_start(ap, f);
    sql_vsprintf(&s, f, ap);
