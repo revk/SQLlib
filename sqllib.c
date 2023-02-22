@@ -314,7 +314,7 @@ void sql_open_s(sql_s_t * q)
       errx(1, "sql_s_t NULL");
    if (q->dummy)
    {
-      warnx("sql_s_t uninitialised len=%lu string=%p f=%p dummy=%llX", q->len,q->string,q->f,q->dummy);
+      warnx("sql_s_t uninitialised len=%lu string=%p f=%p dummy=%llX", q->len, q->string, q->f, q->dummy);
       //*((char *) 0) = 0;        // Cause something valgrind can see
    }
    if (q->f)
@@ -483,7 +483,8 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
 {                               // Formatted print, append to query string
    if (!s)
       return;
-   if(s->dummy)warnx("Dummy=%llX at %s",s->dummy,f);
+   if (s->dummy)
+      warnx("Dummy=%llX at %s", s->dummy, f);
    sql_open_s(s);
    while (*f)
    {
