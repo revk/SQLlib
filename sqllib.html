@@ -61,7 +61,7 @@
 <dt>size_t sql_len_s(sql_string_t*)</dt>
 <dd>Return length so far of string (or if closed, length of not yet freed string), or 0 if NULL or not opened.</dd>
 <dt>void <b>sql_sprintf</b>(sql_string_t*,char*,...)</dt>
-<dd>Formatted SQL print to a growing string. Initialise as </tt>sql_string_t s={};</tt> and use with <tt>_s</tt> variants of queries (below)</dd>
+<dd>Formatted SQL print to a growing string. Initialise as </tt>sql_string_t s={0};</tt> and use with <tt>_s</tt> variants of queries (below)</dd>
 <dt>void <b>sql_vsprintf</b>(sql_string_t*,char*,va_list)</dt>
 <dd>varargs version of sprintf</dd>
 <dt>void <b>sql_safe_query_s</b>(SQL*sql,sql_string_t*)</dt>

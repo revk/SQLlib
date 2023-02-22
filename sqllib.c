@@ -311,9 +311,15 @@ size_t sql_len_s(sql_string_t * q)
 
 void sql_open_s(sql_string_t * q)
 {                               // Open (or continue) a string
-   if (!q || q->f)
+   if (!q)
       return;                   // already open, or not valid
+#if 0
+   if (!q->f)
+      return;
    sql_free_s(q);
+#else
+   memset(q, 0, sizeof(*q));    // Let's not assume it is actually initialized, fucking C compiler.
+#endif
    q->f = open_memstream(&q->string, &q->len);
 }
 
@@ -582,7 +588,7 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
          continue;
       }
 
-      if (!strchr("diouxXeEfFgGaAcsCSpnmTUBZ", *f) || f - base > 20)
+      if (!strchr("diouxXeEfFgGaAcsCSpnmTUBZD", *f) || f - base > 20)
       {                         // cannot handle, output as is
          while (base < f)
             fputc(*base++, s->f);
