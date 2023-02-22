@@ -61,8 +61,8 @@ int main(int argc, const char *argv[])
     f;
    char *e,
     s;
-   sql_string_t query = { };
-   sql_string_t where = { };
+   sql_s_t query = {0};
+   sql_s_t where = {0};
 
    poptContext popt;            // context for parsing command-line options
    const struct poptOption optionsTable[] = {

@@ -288,7 +288,7 @@ int sql_query(SQL * sql, char *q)
    return r;
 }
 
-char *sql_close_s(sql_string_t * q)
+char *sql_close_s(sql_s_t * q)
 {                               // Close a string - return string (malloc'd)
    if (!q)
       return NULL;
@@ -300,7 +300,7 @@ char *sql_close_s(sql_string_t * q)
    return q->string;
 }
 
-size_t sql_len_s(sql_string_t * q)
+size_t sql_len_s(sql_s_t * q)
 {
    if (!q)
       return 0;
@@ -309,7 +309,7 @@ size_t sql_len_s(sql_string_t * q)
    return q->len;
 }
 
-void sql_open_s(sql_string_t * q)
+void sql_open_s(sql_s_t * q)
 {                               // Open (or continue) a string
    if (!q || !q->f)
       return;                   // already open, or not valid
@@ -317,7 +317,7 @@ void sql_open_s(sql_string_t * q)
    q->f = open_memstream(&q->string, &q->len);
 }
 
-void sql_free_s(sql_string_t * q)
+void sql_free_s(sql_s_t * q)
 {                               // Free string
    sql_close_s(q);
    free(q->string);
@@ -325,7 +325,7 @@ void sql_free_s(sql_string_t * q)
    q->len = 0;
 }
 
-char sql_back_s(sql_string_t * q)
+char sql_back_s(sql_s_t * q)
 {                               // Remove last character and return it, don't close
    if (!sql_len_s(q))
       return 0;
@@ -337,7 +337,7 @@ char sql_back_s(sql_string_t * q)
    return r;
 }
 
-void sql_seek_s(sql_string_t * q, size_t pos)
+void sql_seek_s(sql_s_t * q, size_t pos)
 {                               // Seek to a position
    if (!sql_len_s(q))
       return;
@@ -348,41 +348,41 @@ void sql_seek_s(sql_string_t * q, size_t pos)
 }
 
 // Freeing versions for use with malloc'd queries (e.g. from sql_printf...
-void sql_safe_query_s(SQL * sql, sql_string_t * q)
+void sql_safe_query_s(SQL * sql, sql_s_t * q)
 {
    sql_safe_query(sql, sql_close_s(q));
    sql_free_s(q);
 }
 
-SQL_RES *sql_safe_query_use_s(SQL * sql, sql_string_t * q)
+SQL_RES *sql_safe_query_use_s(SQL * sql, sql_s_t * q)
 {
    SQL_RES *r = sql_safe_query_use(sql, sql_close_s(q));
    sql_free_s(q);
    return r;
 }
 
-SQL_RES *sql_safe_query_store_s(SQL * sql, sql_string_t * q)
+SQL_RES *sql_safe_query_store_s(SQL * sql, sql_s_t * q)
 {
    SQL_RES *r = sql_safe_query_store(sql, sql_close_s(q));
    sql_free_s(q);
    return r;
 }
 
-SQL_RES *sql_query_use_s(SQL * sql, sql_string_t * q)
+SQL_RES *sql_query_use_s(SQL * sql, sql_s_t * q)
 {
    SQL_RES *r = sql_query_use(sql, sql_close_s(q));
    sql_free_s(q);
    return r;
 }
 
-SQL_RES *sql_query_store_s(SQL * sql, sql_string_t * q)
+SQL_RES *sql_query_store_s(SQL * sql, sql_s_t * q)
 {
    SQL_RES *r = sql_query_store(sql, sql_close_s(q));
    sql_free_s(q);
    return r;
 }
 
-int sql_query_s(SQL * sql, sql_string_t * q)
+int sql_query_s(SQL * sql, sql_s_t * q)
 {
    int r = sql_query(sql, sql_close_s(q));
    sql_free_s(q);
@@ -473,7 +473,7 @@ char *sql_safe_query_value_free(SQL * sql, char *q)
 // T    Time, takes time_t argument and formats as sql datetime
 // B    Bool, makes 'true' or 'false' based in int argument. With # makes quoted "Y" or "N"
 
-void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
+void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
 {                               // Formatted print, append to query string
    if (!s)
       return;
@@ -793,7 +793,7 @@ void sql_vsprintf(sql_string_t * s, const char *f, va_list ap)
    }
 }
 
-void sql_sprintf(sql_string_t * s, const char *f, ...)
+void sql_sprintf(sql_s_t * s, const char *f, ...)
 {                               // Formatted print, append to query string
    va_list ap;
    va_start(ap, f);
@@ -803,7 +803,7 @@ void sql_sprintf(sql_string_t * s, const char *f, ...)
 
 char *sql_printf(char *f, ...)
 {                               // Formatted print, return malloc'd string
-   sql_string_t s = { 0 };
+   sql_s_t s = { 0 };
    va_list ap;
    va_start(ap, f);
    sql_vsprintf(&s, f, ap);

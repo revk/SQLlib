@@ -230,7 +230,7 @@ int main(int argc, const char *argv[])
 
    if (cmdlist)
    {                            // List entries in a table
-      sql_query_string s = { };
+      sql_s_t s = {0};
       sql_sprintf(&s, "SELECT * FROM `%s`", sqltable);
       if (sqllimit)
          sql_sprintf(&s, " LIMIT %d", sqllimit);
@@ -308,7 +308,7 @@ int main(int argc, const char *argv[])
 
    if (cmdedit || cmdnew || cmdview)
    {                            // form for editing
-      sql_query_string s = { };
+      sql_s_t s = {0};
       sql_sprintf(&s, "SELECT * FROM `%s` LIMIT 1", sqltable);  // just to get fields
       res = sql_safe_query_use_s(&sql, &s);
       int f,
@@ -497,7 +497,7 @@ int main(int argc, const char *argv[])
 
    if (cmdsave && allowerase && getenv("__ERASE__"))
    {
-      sql_query_string s = { };
+      sql_s_t s = {0};
       sql_sprintf(&s, "SELECT * FROM `%s` LIMIT 1", sqltable);  // just to get fields
       res = sql_safe_query_use_s(&sql, &s);
       int f,
@@ -521,7 +521,7 @@ int main(int argc, const char *argv[])
          sql_safe_query_s(&sql, &s);
    } else if (cmdsave)
    {                            // Save values
-      sql_query_string s = { };
+      sql_s_t s = {0};
       sql_sprintf(&s, "SELECT * FROM `%s` LIMIT 1", sqltable);  // just to get fields
       res = sql_safe_query_use_s(&sql, &s);
       int f,
