@@ -311,15 +311,9 @@ size_t sql_len_s(sql_string_t * q)
 
 void sql_open_s(sql_string_t * q)
 {                               // Open (or continue) a string
-   if (!q)
+   if (!q || !q->f)
       return;                   // already open, or not valid
-#if 0
-   if (!q->f)
-      return;
    sql_free_s(q);
-#else
-   memset(q, 0, sizeof(*q));    // Let's not assume it is actually initialized, fucking C compiler.
-#endif
    q->f = open_memstream(&q->string, &q->len);
 }
 
