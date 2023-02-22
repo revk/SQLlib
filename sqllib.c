@@ -265,8 +265,7 @@ int sql_query(SQL * sql, char *q)
 {
    if (!q)
       return 0;
-   struct timeval a = { }, b = {
-   };
+   struct timeval a = { 0 }, b = { 0 };
    gettimeofday(&a, NULL);
    int r = sql_real_query(sql, q);
    gettimeofday(&b, NULL);
@@ -315,7 +314,7 @@ void sql_open_s(sql_s_t * q)
       errx(1, "sql_s_t NULL");
    if (q->dummy)
    {
-      warnx("sql_s_t uninitialised %llX", q->dummy);
+      warnx("sql_s_t uninitialised len=%lu string=%p f=%p dummy=%llX", q->len,q->string,q->f,q->dummy);
       //*((char *) 0) = 0;        // Cause something valgrind can see
    }
    if (q->f)
