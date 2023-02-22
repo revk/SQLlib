@@ -750,9 +750,16 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
          case 'D':             // Stringdecimal
             {
                sd_p a = va_arg(ap, sd_p);
-             char *v = sd_output_f(a, round: flagformat ? *flagformat : 'B', places:(precision < 0 ? 0 : precision));
-               fprintf(s->f, v ? : "NULL");
-               free(v);
+               if (!a)
+                  fprintf(s->f, "NULL");
+               else
+               {
+                char *v = sd_output_f(a, round: flagformat ? *flagformat : 'B', places:(precision < 0 ? 0 : precision));
+                  fprintf(s->f, v);
+                  free(v);
+                  if (flagfree)
+                     sd_free(a);
+               }
             }
             break;
          }
@@ -876,6 +883,7 @@ int main(int argc, const char *argv[])
 // returns next (at null)
 char *sqlprintf(char *q, char *f, ...)  // DEPRECATED
 {                               // DEPRECATED
+   warnx("sqlprintf used, please replace");
    va_list ap;
 
    va_start(ap, f);

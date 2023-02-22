@@ -22,17 +22,18 @@
 <tr><td>%#B</td><td>Output 'Y' or 'N' as a boolean value based on the argument being non zero for true.</td></tr>
 <tr><td>%D</td><td>Output a stringdecimal sd_p value, allows NULL if NULL, can have precision, and rounding character in [], e.g. %.2[B]D.</td></tr>
 </table>
+<p>Note that you can use <tt>!</tt> as a flag in <tt>%s</tt> (e.g. <tt>%!s</tt>) to free the argument after use. You can also use with <tt>%!D</tt> to <i>sd_free(...)</i> the stringdecimal argument.</p>
 <h3>Example usage</h3>
 <p>Typical usage of <i>sql_printf</i> is as an argument to one of the query functions ending <i>_free</i>. The <i>sql_printf</i> function returns a malloc'd space for the output and the <i>_free</i> variant of the query frees that space. e.g. <tt>sql_safe_query_free(&amp;sql,sql_printf("UPDATE `fred` SET `q`=%#s WHERE ID=%d",q,id));</tt> though obviously the result could be assigned to a char*  and later passed to <i>free()</i> perhaps after printing, etc.</p>
 <p>In addition to the <tt>_free</tt> functions, which free the argument after use, there are also <tt>_f</tt> versions which expand to use of <tt>_free</tt> with <tt>sql_printf</tt> just to save space.</p>
-<p>The <i>sql_sprintf</i> function is normally used to build up a string with multiple prints, and then pass to a query function ending <i>_s</i>. To use this start by declaring an empty string object, e.g. <tt>sql_string_t s = { };</tt> and then print to the string using <i>sql_sprintf</i>, e.g. <tt>sql_sprintf(&amp;s," WHERE ID=%d",id);</tt></p>
+<p>The <i>sql_sprintf</i> function is normally used to build up a string with multiple prints, and then pass to a query function ending <i>_s</i>. To use this start by declaring an empty string object, e.g. <tt>sql_s_t s = { };</tt> and then print to the string using <i>sql_sprintf</i>, e.g. <tt>sql_sprintf(&amp;s," WHERE ID=%d",id);</tt></p>
 <p>Finally when you have done one or more <i>sql_sprintf</i> calls using the same string (e.g. <tt>&amp;s</tt>) you can use this as an argument to a query, e.g. <tt>sql_safe_query_s(&amp;sql,&amp;s);</tt> which also frees the allocated string.</p>
 <p>In some cases you want to compose a string using <i>sql_sprint</i> and not use the query call. You can access the string, e.g. to print, using <i>sql_close_s(...)</i> to close the string and return al malloc'd value, e.g. <tt>printf("%s;\n",sql_close_s(&amp;s));</tt> and then freeing the string <tt>sql_free_s(&amp;s);</tt> manually.</p>
 <h2>Function definitions</h2>
 <p>Various version of SQL queries exist using a simple naming convention as follows:-</p>
 <table border="1"><caption>Query functions</caption>
 <tr><td>_free</td><td>Used with a malloc'd query, e.g. from <tt>sql_printf</tt> and causes the query to be freed (<tt>free()</tt>)</td></tr>
-<tr><td>_s</td><td>Used with a query that is a dynamic string of type <i>sql_string_t*</i> which is created as <tt>sql_string_t s={};</tt> and used in <tt>sql_sprintf</tt> or <tt>sql_vsprintf</tt> to build up a query. Its content is freed by this function.</td></tr>
+<tr><td>_s</td><td>Used with a query that is a dynamic string of type <i>sql_s_t*</i> which is created as <tt>sql_s_t s={};</tt> and used in <tt>sql_sprintf</tt> or <tt>sql_vsprintf</tt> to build up a query. Its content is freed by this function.</td></tr>
 <tr><td>_safe</td><td>Means that any error causes an immediate abort printing details of the error to stderr.</td></tr>
 <tr><td>_use</td><td>Means this query should return a result. If it does not then the <tt>_safe</tt> version reports an error. Similarly non <tt>_use</tt> variants with <tt>_safe</tt> that do return a result cause an error.</td></tr>
 </table>
@@ -56,24 +57,24 @@
 <dd>Does a query that does not return a result, returns any error code on error. Frees the query string provided which is typically returned from <tt>sql_printf</tt>.</dd>
 <dt>SQL_RES*<b>sql_query_use_free</b>(SQL*sql,char*)</dt>
 <dd>Does a query that does return a result, returns NULL on error. Frees the query string provided which is typically returned from <tt>sql_printf</tt>.</dd>
-<dt>char *sql_close_s(sql_string_t*)</dt>
+<dt>char *sql_close_s(sql_s_t*)</dt>
 <dd>Close a query string and return the value.</dt>
-<dt>size_t sql_len_s(sql_string_t*)</dt>
+<dt>size_t sql_len_s(sql_s_t*)</dt>
 <dd>Return length so far of string (or if closed, length of not yet freed string), or 0 if NULL or not opened.</dd>
-<dt>void <b>sql_sprintf</b>(sql_string_t*,char*,...)</dt>
-<dd>Formatted SQL print to a growing string. Initialise as </tt>sql_string_t s={0};</tt> and use with <tt>_s</tt> variants of queries (below)</dd>
-<dt>void <b>sql_vsprintf</b>(sql_string_t*,char*,va_list)</dt>
+<dt>void <b>sql_sprintf</b>(sql_s_t*,char*,...)</dt>
+<dd>Formatted SQL print to a growing string. Initialise as </tt>sql_s_t s={0};</tt> and use with <tt>_s</tt> variants of queries (below)</dd>
+<dt>void <b>sql_vsprintf</b>(sql_s_t*,char*,va_list)</dt>
 <dd>varargs version of sprintf</dd>
-<dt>void <b>sql_safe_query_s</b>(SQL*sql,sql_string_t*)</dt>
-<dd>Does a query using an <i>sql_string_t</i> that does not return a result, aborts on error. Frees the query string content provided which is typically created with <tt>sql_sprintf</tt>.</dd>
-<dt>SQL_RES*<b>sql_safe_query_use_s</b>(SQL*sql,sql_string_t*)</dt>
-<dd>Does a query using an <i>sql_string_t</i> that does return a result, aborts on error. Frees the query string content provided which is typically created with <tt>sql_sprintf</tt>.</dd>
-<dt>int <b>sql_query_s</b>(SQL*sql,sql_string_t*)</dt>
-<dd>Does a query using an <i>sql_string_t</i> that does not return a result, returns any error code on error. Frees the query string content provided which is typically created with <tt>sql_sprintf</tt>.</dd>
-<dt>SQL_RES*<b>sql_query_use_s</b>(SQL*sql,sql_string_t*)</dt>
-<dd>Does a query using an <i>sql_string_t</i> that does return a result, returns NULL on error. Frees the query string content provided which is typically created with <tt>sql_sprintf</tt>.</dd>
-<dt>void <b>sql_free_s</b>(sql_string_t*)</dt>
-<dd>Frees content of a <i>sql_string_t</i> which was typically created with <tt>sql_sprintf</tt</dd>
+<dt>void <b>sql_safe_query_s</b>(SQL*sql,sql_s_t*)</dt>
+<dd>Does a query using an <i>sql_s_t</i> that does not return a result, aborts on error. Frees the query string content provided which is typically created with <tt>sql_sprintf</tt>.</dd>
+<dt>SQL_RES*<b>sql_safe_query_use_s</b>(SQL*sql,sql_s_t*)</dt>
+<dd>Does a query using an <i>sql_s_t</i> that does return a result, aborts on error. Frees the query string content provided which is typically created with <tt>sql_sprintf</tt>.</dd>
+<dt>int <b>sql_query_s</b>(SQL*sql,sql_s_t*)</dt>
+<dd>Does a query using an <i>sql_s_t</i> that does not return a result, returns any error code on error. Frees the query string content provided which is typically created with <tt>sql_sprintf</tt>.</dd>
+<dt>SQL_RES*<b>sql_query_use_s</b>(SQL*sql,sql_s_t*)</dt>
+<dd>Does a query using an <i>sql_s_t</i> that does return a result, returns NULL on error. Frees the query string content provided which is typically created with <tt>sql_sprintf</tt>.</dd>
+<dt>void <b>sql_free_s</b>(sql_s_t*)</dt>
+<dd>Frees content of a <i>sql_s_t</i> which was typically created with <tt>sql_sprintf</tt</dd>
 <dt>int <b>sql_colnum</b>(SQL_RES*,const char *fieldname)</dt>
 <dd>return which column a specified field name (case insensitive) is on, or -ve for not found.</dd>
 <dt>char *<b>sql_col</b>(SQL_RES*,const char*fieldname)</dt>
