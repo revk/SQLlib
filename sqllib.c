@@ -313,13 +313,11 @@ void sql_open_s(sql_s_t * q)
 {                               // Open (or continue) a string
    if (!q)
       errx(1, "sql_s_t NULL");
-#if 0
    if (q->dummy)
    {
       warnx("sql_s_t uninitialised %llX", q->dummy);
-      *((char *) 0) = 0;        // Cause something valgrind can see
+      //*((char *) 0) = 0;        // Cause something valgrind can see
    }
-#endif
    if (q->f)
       return;                   // already open, or not valid
    sql_free_s(q);
