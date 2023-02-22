@@ -44,6 +44,7 @@ typedef struct {
    size_t len; // Len of string
    char *string; // Malloc'd space
    FILE *f;	// open_memstream for query/len
+   long long dummy;	// To catch uninitialised structure
 } sql_s_t;
 
 // Data

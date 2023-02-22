@@ -311,7 +311,11 @@ size_t sql_len_s(sql_s_t * q)
 
 void sql_open_s(sql_s_t * q)
 {                               // Open (or continue) a string
-   if (!q || q->f)
+   if (!q)
+      errx(1, "sql_s_t NULL");
+   if (q->dummy)
+      errx(1, "sql_s_t uninitialised");
+   if (q->f)
       return;                   // already open, or not valid
    sql_free_s(q);
    q->f = open_memstream(&q->string, &q->len);
