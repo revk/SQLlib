@@ -314,7 +314,10 @@ void sql_open_s(sql_s_t * q)
    if (!q)
       errx(1, "sql_s_t NULL");
    if (q->dummy)
-      errx(1, "sql_s_t uninitialised");
+   {
+      warnx("sql_s_t uninitialised %llX", q->dummy);
+      *((char *) 0) = 0;        // Cause something valgrind can see
+   }
    if (q->f)
       return;                   // already open, or not valid
    sql_free_s(q);
