@@ -774,7 +774,7 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
                }
             }
 #else
-	    warnx("%%D used with no stringdecimal version");
+	    warnx("%%D used with no stringdecimal version - use sqllibsd.o and stringdecimal.o");
 #endif
             break;
          }
