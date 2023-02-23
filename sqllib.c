@@ -16,7 +16,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#ifdef SD
 #include "stringdecimal/stringdecimal.h"
+#endif
 #include "sqllib.h"
 
 int sqldebug = 0;               // Set 1 to print queries & errors, 2 for just errors, -ve to not do any actual updates just print
@@ -503,7 +505,9 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
       char flagspace = 0;
       char flagzero = 0;
 #endif
+#ifdef	SD
       const char *flagformat = NULL;
+#endif
       char flagfree = 0;
       char flagalt = 0;
       char flagleft = 0;
@@ -534,13 +538,16 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
             flagalt = 1;
          else if (*f == '-')
             flagleft = 1;
+#ifdef	SD
          else if (*f == '[')
          {
             f++;
             flagformat = f;
             while (*f && *f != ']')
                f++;
-         } else
+	 }
+#endif
+         else
             break;
          f++;
       }
@@ -752,6 +759,7 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
             }
             break;
          case 'D':             // Stringdecimal
+#ifdef	SD
             {
                sd_p a = va_arg(ap, sd_p);
                if (!a)
@@ -765,6 +773,9 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
                      sd_free(a);
                }
             }
+#else
+	    warnx("%%D used with no stringdecimal version");
+#endif
             break;
          }
       } else                    // use standard format (non portable code, assumes ap is moved on)

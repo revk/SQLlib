@@ -10,7 +10,7 @@ ifneq ($(wildcard /usr/bin/mariadb_config),)
 endif
 OPTS=-D_GNU_SOURCE --std=gnu99 -g -Wall -funsigned-char -lpopt
 
-all: sqllib.o sqlexpand.o sql sqlwrite sqledit sqlexpand
+all: sqllib.o sqllibsd.o sqlexpand.o sql sqlwrite sqledit sqlexpand
 
 update:
 	git pull
@@ -21,8 +21,11 @@ stringdecimal/stringdecimal.o:
 	git submodule update --recursive
 	make -C stringdecimal
 
-sqllib.o: sqllib.c sqllib.h Makefile stringdecimal/stringdecimal.o
+sqllib.o: sqllib.c sqllib.h Makefile
 	gcc -g -O -c -o $@ $< -fPIC ${OPTS} -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER}
+
+sqllibsd.o: sqllib.c sqllib.h Makefile stringdecimal/stringdecimal.o
+	gcc -g -O -c -o $@ $< -fPIC ${OPTS} -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER} -DSTRINGDECIMAL
 
 sql: sql.c sqllib.o sqllib.h sqlexpand.o sqlexpand.h stringdecimal/stringdecimal.o
 	gcc -g -O -o $@ $< -fPIC ${OPTS} -DNOXML ${SQLINC} ${SQLLIB} sqllib.o sqlexpand.o stringdecimal/stringdecimal.o -lcrypto -luuid
