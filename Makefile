@@ -27,14 +27,14 @@ sqllib.o: sqllib.c sqllib.h Makefile
 sqllibsd.o: sqllib.c sqllib.h Makefile stringdecimal/stringdecimal.o
 	gcc -g -O -c -o $@ $< -fPIC ${OPTS} -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER} -DSTRINGDECIMAL
 
-sql: sql.c sqllib.o sqllib.h sqlexpand.o sqlexpand.h stringdecimal/stringdecimal.o
-	gcc -g -O -o $@ $< -fPIC ${OPTS} -DNOXML ${SQLINC} ${SQLLIB} sqllib.o sqlexpand.o stringdecimal/stringdecimal.o -lcrypto -luuid
+sql: sql.c sqllibsd.o sqllib.h sqlexpand.o sqlexpand.h stringdecimal/stringdecimal.o
+	gcc -g -O -o $@ $< -fPIC ${OPTS} -DNOXML ${SQLINC} ${SQLLIB} sqllibsd.o sqlexpand.o stringdecimal/stringdecimal.o -lcrypto -luuid
 
-sqlwrite: sqlwrite.c sqllib.o sqllib.h stringdecimal/stringdecimal.o
-	gcc -g -O -o $@ $< -fPIC ${OPTS} ${SQLINC} ${SQLLIB} sqllib.o stringdecimal/stringdecimal.o
+sqlwrite: sqlwrite.c sqllibsd.o sqllib.h stringdecimal/stringdecimal.o
+	gcc -g -O -o $@ $< -fPIC ${OPTS} ${SQLINC} ${SQLLIB} sqllibsd.o stringdecimal/stringdecimal.o
 
-sqledit: sqledit.c sqllib.o sqllib.h stringdecimal/stringdecimal.o
-	gcc -g -O -o $@ $< -fPIC ${OPTS} ${SQLINC} ${SQLLIB} sqllib.o stringdecimal/stringdecimal.o
+sqledit: sqledit.c sqllibsd.o sqllib.h stringdecimal/stringdecimal.o
+	gcc -g -O -o $@ $< -fPIC ${OPTS} ${SQLINC} ${SQLLIB} sqllibsd.o stringdecimal/stringdecimal.o
 
 sqlexpand.o: sqlexpand.c Makefile
 	cc -c -o $@ $< ${OPTS} -DLIB
