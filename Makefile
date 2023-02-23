@@ -12,6 +12,11 @@ OPTS=-D_GNU_SOURCE --std=gnu99 -g -Wall -funsigned-char -lpopt
 
 all: sqllib.o sqlexpand.o sql sqlwrite sqledit sqlexpand
 
+update:
+	git pull
+	git submodule update --init --remote --recursive
+	make -C stringdecimal
+
 stringdecimal/stringdecimal.o:
 	git submodule update --recursive
 	make -C stringdecimal
