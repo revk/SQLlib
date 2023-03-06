@@ -106,7 +106,6 @@ char *sql_col(SQL_RES *, const char *fieldname);        // Return current row va
 SQL_FIELD *sql_col_format(SQL_RES *, const char *fieldname);    // Return data type for column by name. Case insensitive
 #define	sql_colz(r,f)	(sql_col(r,f)?:"")      // Non null return sql_col
 
-char *sqlprintf(char *, char *, ...);   // returns point to null - old, deprecated - TO REMOVE SOON
 time_t sql_time_z(const char *datetime, int utc);       // return time_t for SQL time
 #define sql_time(d) sql_time_z(d,0)
 #define sql_time_utc(d) sql_time_z(d,1)
