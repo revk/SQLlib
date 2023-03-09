@@ -101,9 +101,18 @@ This means you do not need the `SQL_ROW` as such, you can simply `while(sql_fetc
 
 The transaction functions are only slightly modified. `sql_transaction(&sql)` to start, but `sql_safe_commit(&sql)` to commit, and `sql_safe_rollback(&sql)` to roll back. These abort on error with an error to stderr.
 
-Setting up a transaction for your code is recommended, and idea when using the `_safe` functions that abort on error.
+Setting up a transaction for your code is recommended, and ideal when using the `_safe` functions that abort on error.
 
 Also, when not in transactions, and single SQL query can fail with a *failed to get lock* error. In such cases the query is automatically retried once before failing.
+
+One trick for using debug is to end with something like 
+
+```
+ if(sqldebug)sql_safe_rollback(&sql);
+ else sql_safe_commit(&sql);
+```
+
+This means you can use the debug mode to print all the queries but not actually do any of the actual SQL at the end, rolling back.
 
 # Examples
 
