@@ -23,11 +23,11 @@ In addition to just mapping `mysql` to `sql` the library also provides a compreh
 
 Another key aspect of SQL is error handling. If a query fails. In a most cases a query would not fail, SQL is quite robust, an `UPDATE` may do nothing if no rows match a `WHERE` clause, a `SELECT` may return no rows. So for the vast majority of SQL coding you don't ever expect an error. However, good code needs to check the response from every single query to be sure.
 
-To accommodate this all of the query wrappes include a `_safe_` version of the query. In the even there is an error with the query this version reports the query and error to stderr, and aborts the code. Used in conjunction with SQL transactions this provides a safe abort for any unexpected error and provides the details needed to work out what happened.
+To accommodate this all of the query wraps include a `_safe_` version of the query. In the even there is an error with the query this version reports the query and error to stderr, and aborts the code. Used in conjunction with SQL transactions this provides a safe abort for any unexpected error and provides the details needed to work out what happened.
 
 ### Debug
 
-Anotehr aspect of any SQL code is working out exactly what happend. A variabled is defined `sqldebug` which is an `int` and so can be used with `POPT_ARG_NONE` in a `popt` argument list to allow debug to be enabled. The effect is that every query is logged to stderr, along with execution time and number of rows returned.
+Another aspect of any SQL code is working out exactly what happened. A variable is defined `sqldebug` which is an `int` and so can be used with `POPT_ARG_NONE` in a `popt` argument list to allow debug to be enabled. The effect is that every query is logged to stderr, along with execution time and number of rows returned.
 
 ### Formatting queries
 
@@ -46,6 +46,10 @@ A query can be constructed step by step, or can be constructed in the query func
 
 An additional modifier `!` can be used with `%s` and `%D` which means free the value after use, e.g. `%!s`, `%!#s`, `%!#S` will take a `char*` string and free it (if not NULL) after use. `%!D` takes a string decimal library `sd_p` and does `sd_free(...)` on it after use. This allows for dynamically created allocated values to be used which are freed without the need to put them in variables and call a free function afterwards.
 
+### Field names
+
+Mysql allows field names to be placed in back ticks, and this is recommended. If you have a field name from a string you could just use `%s`, or better `` `%s` `, but it is recommende to use  `` `%#S` `` in such cases. This allows the library to handle any escaping needed for field names in back ticks to be escaped.
+
 ### Step by step query construction
 
 To construct a query step by step, you create a query string object, e.g. `sql_s_t s={0};`. **The `{0}` is important, do not omit the 0**
@@ -62,7 +66,7 @@ Normally you then execute a query using the string, this resets it for future us
 
 In a lot of cases you can construct a whole query in one go, and for this the various query functions have a `_f` version. These take a format string and variables to format and execure a query. e.g. `` sql_safe_query_f(&sql,"INSERT INTO `mytable` SET `field1`=%d,`field2`=%#s",f1,f2); ``
 
-It is also possible to make a query string and have it as a mallo'c `char*` pointer using `sql_printf(...)`. There are also `_free` versions of the hqery functions which take a `char*` malloc'd pointer and use it and free after use. So the above is the same as `` sql_safe_query_free(&sql,sql_printf("INSERT INTO `mytable` SET `field1`=%d,`field2`=%#s",f1,f2)); ``. This can be useful if you need the query string for anything else.
+It is also possible to make a query string and have it as a mallo'c `char*` pointer using `sql_printf(...)`. There are also `_free` versions of the query functions which take a `char*` malloc'd pointer and use it and free after use. So the above is the same as `` sql_safe_query_free(&sql,sql_printf("INSERT INTO `mytable` SET `field1`=%d,`field2`=%#s",f1,f2)); ``. This can be useful if you need the query string for anything else.
 
 ### query functions
 
@@ -74,7 +78,7 @@ E.g. `sql_safe_query_store_f(...)` means
 - `_store` means this is a query that returns a result, and we store the result
 - `_f` means format the query inline
 
-A query like `SELECT` or `DESCRIBE` returns a value, and so you have to use a `_store` or `_use` query fnuctions, which return `SQL_RES*`. The `_use` version streams the result from the SQL server, and is not usually what you want. Only use `_use` if you have some stupidly big query result that won't fit in memory. The `_store` versions stores the result - this has the advantage you can see how many rows there are `sql_num_rows(res)` and it frees the `SQL` handle to allow other queries even when working through the rows of the result. You free the result with `sql_free_result(res)`. The `_safe` version always returns an `SQL_RES*` or errors, the non `_safe` returns NULL if error.
+A query like `SELECT` or `DESCRIBE` returns a value, and so you have to use a `_store` or `_use` query functions, which return `SQL_RES*`. The `_use` version streams the result from the SQL server, and is not usually what you want. Only use `_use` if you have some stupidly big query result that won't fit in memory. The `_store` versions stores the result - this has the advantage you can see how many rows there are `sql_num_rows(res)` and it frees the `SQL` handle to allow other queries even when working through the rows of the result. You free the result with `sql_free_result(res)`. The `_safe` version always returns an `SQL_RES*` or errors, the non `_safe` returns NULL if error.
 
 A query like `UPDATE` or `INSERT` does not return a result, though `sql_insert_id(&sql)` is useful after inserts with auto incrementing IDs. These functions do not have `_use` or `_store` and have no return value (so `void` for `_safe`) or an `int` return if not `_safe` version so you know if an error (non zero return).
 
@@ -82,7 +86,7 @@ A query like `UPDATE` or `INSERT` does not return a result, though `sql_insert_i
 
 Another big problem with the underlying C mysql libraries is accessing the result of a query. The result is an `SQL_ROW` which is an array of strings (which can be NULL) for each row of the result. Use `sql_fetch_row(res)` to get each row, and reference the first row as `row[0]` for example.
 
-The problem is that this means a `SELECT` with a list of field names and then using `row[0]`, `row[1]`, etc, exacting matcing the field in the `SELECT` and that is not easy to read and very prone to errors.
+The problem is that this means a `SELECT` with a list of field names and then using `row[0]`, `row[1]`, etc, exacting matching the field in the `SELECT` and that is not easy to read and very prone to errors.
 
 To address this there are functions `sql_col(res,name)` which returns the row value for a named row, e.g. `sql_col(res,"ID")`. A variation `sql_colz(res,name)` can be used to return an empty string rather than a NULL.
 
