@@ -48,7 +48,7 @@ An additional modifier `!` can be used with `%s` and `%D` which means free the v
 
 ### Field names
 
-Mysql allows field names to be placed in back ticks, and this is recommended. If you have a field name from a string you could just use `%s`, or better `` `%s` `, but it is recommende to use  `` `%#S` `` in such cases. This allows the library to handle any escaping needed for field names in back ticks to be escaped.
+Mysql allows field names to be placed in back ticks, and this is recommended. If you have a field name from a string you could just use `%s`, or better `` `%s` ``, but it is recommended to use  `` `%#S` `` in such cases. This allows the library to handle any escaping needed for field names in back ticks to be escaped.
 
 ### Step by step query construction
 
