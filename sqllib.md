@@ -72,11 +72,12 @@ It is also possible to make a query string and have it as a mallo'c `char*` poin
 
 The query functions are available in combinations with `_safe_` or not, and `_f` or `_s` or `_free`, etc.
 
-E.g. `sql_safe_query_store_f(...)` means
-- `_safe_` so it will abort with error to stderr if it fails
-- `query` is in all of the query functions
-- `_store` means this is a query that returns a result, and we store the result
-- `_f` means format the query inline
+The format is:-
+- `sql_`
+- Optional `safe_` meaning to abort on error
+- `query`
+- Optional `_store` or `_use` for queries that return rows
+- Optional suffix `_f` (for format inline), `_free` for use and free malloc'd query, `_s` for use `sql_s_t*` composed string
 
 A query like `SELECT` or `DESCRIBE` returns a value, and so you have to use a `_store` or `_use` query functions, which return `SQL_RES*`. The `_use` version streams the result from the SQL server, and is not usually what you want. Only use `_use` if you have some stupidly big query result that won't fit in memory. The `_store` versions stores the result - this has the advantage you can see how many rows there are `sql_num_rows(res)` and it frees the `SQL` handle to allow other queries even when working through the rows of the result. You free the result with `sql_free_result(res)`. The `_safe` version always returns an `SQL_RES*` or errors, the non `_safe` returns NULL if error.
 
