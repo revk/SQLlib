@@ -4,7 +4,7 @@ The `sqllib.o` and `sqllibsd.o` are libraries that provide a nicer and safer way
 
 This manual does not go in to detail on the function prototypes themselves, see `sqllib.h` for details of these.
 
-## msqyl equiviliant functions and datatypes
+## mysql equivalent functions and datatypes
 
 In general, anything that says `mysql` changes to just `sql`. This includes `MYSQL_RES*` now `SQL_RES*` and so on.
 A number of functions are directly mapped by `#define` in the `sqllib.h` include file, e.g. `sql_affected_rows(...)` as `mysql_affected_rows(...)`.
