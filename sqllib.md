@@ -15,6 +15,8 @@ Ensuring the correct database connection details is a challenge. For this a func
 
 In addition `sql_cnf_connect(...)` can be used, which just uses a specified configuration file for the connection. This is ideal for ensuring credentials are not included in code.
 
+At the end, close with `sql_close(&sql)`.
+
 ## Queries
 
 In addition to just mapping `mysql` to `sql` the library also provides a comprehensive set of functions for managing SQL queries. The reason for this is that SQL queries require memory management (they can be arbitrarily long) and escaping (to avoid Bobby Tables). Constructing safe queries directly in C code can be problematic and error prone.
