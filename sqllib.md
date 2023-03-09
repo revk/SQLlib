@@ -124,7 +124,7 @@ if(s1) sql_sprintf(&q,"`v1`=%#s,",s1);
 if(d2>=0) sql_sprintf(&q,"`d2`=%d,",d2);
 if(sql_back_s(&q) == ',')
 {
- sql_sprintf(&q, "WHERE `ID`=%d",id);
+ sql_sprintf(&q, " WHERE `ID`=%d",id);
  sql_safe_query_s(&sql,&q);
 }
 else sql_free_s(&q); // No updates
