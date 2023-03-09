@@ -97,6 +97,14 @@ To address this there are functions `sql_col(res,name)` which returns the row va
 
 This means you do not need the `SQL_ROW` as such, you can simply `while(sql_fetch_row(res))` and access fields by name using `sql_col(res,name)`. This also makes it idea for cases where fields name be option - you can do a `SELECT * FROM...` and then use fields that exist in the result. The `sql_colnum(res,name)` function gets a column number, with -1 for not existing, allowing an easy test for whether a name column even exists in the row. `sql_col_format(res,name)` is useful to get the `SQL_FIELD` field type for a column, but name.
 
+## Transactions
+
+The transaction functions are only slightly modified. `sql_transaction(&sql)` to start, but `sql_safe_commit(&sql)` to commit, and `sql_safe_rollback(&sql)` to roll back. These abort on error with an error to stderr.
+
+Setting up a transaction for your code is recommended, and idea when using the `_safe` functions that abort on error.
+
+Also, when not in transactions, and single SQL query can fail with a *failed to get lock* error. In such cases the query is automatically retried once before failing.
+
 # Examples
 
 ## Scanning a table
