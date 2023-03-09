@@ -68,7 +68,7 @@ In a lot of cases you can construct a whole query in one go, and for this the va
 
 It is also possible to make a query string and have it as a mallo'c `char*` pointer using `sql_printf(...)`. There are also `_free` versions of the query functions which take a `char*` malloc'd pointer and use it and free after use. So the above is the same as `` sql_safe_query_free(&sql,sql_printf("INSERT INTO `mytable` SET `field1`=%d,`field2`=%#s",f1,f2)); ``. This can be useful if you need the query string for anything else.
 
-### query functions
+### SQL query functions
 
 The query functions are available in combinations with `_safe_` or not, and `_f` or `_s` or `_free`, etc.
 
