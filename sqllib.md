@@ -79,7 +79,7 @@ The format is:-
 - Optional `_store` or `_use` for queries that return rows
 - Optional suffix `_f` (for format inline), `_free` for use and free malloc'd query, `_s` for use `sql_s_t*` composed string, otherwise a query string is passed and not freed.
 
-The simplest, `sql_query(&sql,query)`,` does the query, does not free the query, does not expect a result, and returns an `int` with 0 if it worked else and error. In practice this is rarely what you want.
+The simplest, `sql_query(&sql,query)`, does the query, does not free the query, does not expect a result, and returns an `int` with 0 if it worked else and error. In practice this is rarely what you want.
 
 A more complex one like `sql_safe_query_store_f(&sql,"whatever",a,b,c)` will format a query with variables, use that to do the query, free the formatted query, store teh result of the query, abort on error or return the result row set.
 
