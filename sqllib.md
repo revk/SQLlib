@@ -19,7 +19,7 @@ In addition `sql_cnf_connect(...)` can be used, which just uses a specified conf
 
 In addition to just mapping `mysql` to `sql` the library also provides a comprehensive set of functions for managing SQL queries. The reason for this is that SQL queries require memory management (they can be arbitrarily long) and escaping (to avoid Bobby Tables). Constructing safe queries directly in C code can be problematic and error prone.
 
-### Error handline
+### Error handling
 
 Another key aspect of SQL is error handling. If a query fails. In a most cases a query would not fail, SQL is quite robust, an `UPDATE` may do nothing if no rows match a `WHERE` clause, a `SELECT` may return no rows. So for the vast majority of SQL coding you don't ever expect an error. However, good code needs to check the response from every single query to be sure.
 
@@ -43,6 +43,8 @@ A query can be constructed step by step, or can be constructed in the query func
 | `%B` | Outputs `TRUE` or `FALSE` based on `int` argument being non zero or zero. |
 | `%#B` | Outputs `'Y'` or `'N'` based on `int` argument being non zero or zero. |
 | `%D` | Outputs a string decimal library `sd_t` value, or NULL if no pointer passed. Can have precision, e.g. `%.2D` and also, in square brackets, rounding code, e.g. `%.2[B]D` for bankers rounding to 2 places. Bankers rounding is default. This needs the `sqllibsd.o` library, else it aborts with an error. |
+
+An additional modifier `!` can be used with `%s` and `%D` which means free the value after use, e.g. `%!s`, `%!#s`, `%!#S` will take a `char*` string and free if (if not NULL) after use. `%!D` takes a string decimal library `sd_p` and does `sd_free(...)` on it after use. This allows for dynamically created allocated values to be used which are freed without the need to put them in variables and call a free function afterwards.
 
 ### Step by step query construction
 
