@@ -64,7 +64,7 @@ Normally you then execute a query using the string, this resets it for future us
 
 ### Inline queries
 
-In a lot of cases you can construct a whole query in one go, and for this the various query functions have a `_f` version. These take a format string and variables to format and execure a query. e.g. `` sql_safe_query_f(&sql,"INSERT INTO `mytable` SET `field1`=%d,`field2`=%#s",f1,f2); ``
+In a lot of cases you can construct a whole query in one go, and for this the various query functions have a `_f` version. These take a format string and variables to format and execute a query. e.g. `` sql_safe_query_f(&sql,"INSERT INTO `mytable` SET `field1`=%d,`field2`=%#s",f1,f2); ``
 
 It is also possible to make a query string and have it as a mallo'c `char*` pointer using `sql_printf(...)`. There are also `_free` versions of the query functions which take a `char*` malloc'd pointer and use it and free after use. So the above is the same as `` sql_safe_query_free(&sql,sql_printf("INSERT INTO `mytable` SET `field1`=%d,`field2`=%#s",f1,f2)); ``. This can be useful if you need the query string for anything else.
 
@@ -81,7 +81,7 @@ The format is:-
 
 The simplest, `sql_query(&sql,query)`, does the query, does not free the query, does not expect a result, and returns an `int` with 0 if it worked else and error. In practice this is rarely what you want.
 
-A more complex one like `sql_safe_query_store_f(&sql,"whatever",a,b,c)` will format a query with variables, use that to do the query, free the formatted query, store teh result of the query, abort on error or return the result row set.
+A more complex one like `sql_safe_query_store_f(&sql,"whatever",a,b,c)` will format a query with variables, use that to do the query, free the formatted query, store the result of the query, abort on error or return the result row set.
 
 A query like `SELECT` or `DESCRIBE` returns a value, and so you have to use a `_store` or `_use` query functions, which return `SQL_RES*`. The `_use` version streams the result from the SQL server, and is not usually what you want. Only use `_use` if you have some stupidly big query result that won't fit in memory. The `_store` versions stores the result - this has the advantage you can see how many rows there are `sql_num_rows(res)` and it completes the `SQL` query connection to allow other queries even when working through the rows of the result. You free the result with `sql_free_result(res)`. The `_safe` version always returns an `SQL_RES*` or errors, the non `_safe` returns NULL if error.
 
