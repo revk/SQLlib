@@ -52,10 +52,10 @@ Immediately after the variable name (and inside `{...}`, and after `[...]`, if p
 
 |Suffix|Meaning|
 |------|-------|
-|`:h'|	Head of path, removes all after last slash.|
-|`:t'|	Tail of path, only from after last slash (unchanged if no slash).|
-|`:e'|	Extension. Everything after final dot if after last slash. Blank if no dot after last slash.|
-|`:r'|	Remove extension. Removes last dot and anything after if it, if dot is after a slash.|
+|`:h`|	Head of path, removes all after last slash.|
+|`:t`|	Tail of path, only from after last slash (unchanged if no slash).|
+|`:e`|	Extension. Everything after final dot if after last slash. Blank if no dot after last slash.|
+|`:r`|	Remove extension. Removes last dot and anything after if it, if dot is after a slash.|
 
 ## Checking
 
