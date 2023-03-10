@@ -488,11 +488,14 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
    if (s->dummy)
       warnx("Dummy=%llX at %s", s->dummy, f);
    sql_open_s(s);
+   char backtick = 0;           // Tracked for `%#S` usage, and only within the specific print
    while (*f)
    {
       // check enough space for anything but a string expansion...
       if (*f != '%')
       {
+         if (*f == '`')
+            backtick = !backtick;
          fputc(*f++, s->f);
          continue;
       }
@@ -545,7 +548,7 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
             flagformat = f;
             while (*f && *f != ']')
                f++;
-	 }
+         }
 #endif
          else
             break;
@@ -604,7 +607,11 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
          continue;
       }
       void add(char a) {        // add an escaped character
-         if (flagalt && a == '\n')
+         if (flagalt && a == '`' && backtick)
+         {
+            fputc('`', s->f);
+            fputc('`', s->f);
+         } else if (flagalt && a == '\n')
          {
             fputc('\\', s->f);
             fputc('n', s->f);
@@ -774,7 +781,7 @@ void sql_vsprintf(sql_s_t * s, const char *f, va_list ap)
                }
             }
 #else
-	    warnx("%%D used with no stringdecimal version - use sqllibsd.o and stringdecimal.o");
+            warnx("%%D used with no stringdecimal version - use sqllibsd.o and stringdecimal.o");
 #endif
             break;
          }
