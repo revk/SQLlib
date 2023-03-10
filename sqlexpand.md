@@ -16,6 +16,7 @@ However, if the next thing is a letter or number you can include the name in cur
 
 Immediately before the variable name (and inside `{...}` if present) can be a number of prefixes.
 
+|---|-------|
 |`?`|	Used in some special cases, such as testing if a variable exists.|
 |`@`|	Consider the expanded value as a filename and read the value from that file.|
 |`-`|	Replace all `'`, `"` or `` ` `` with `_` (underscore).|
@@ -31,6 +32,7 @@ Only use `$%variable` with great care, and ensure any construction of the variab
 
 Instead of the variable name itself there are some special variables. Some of these match a prefix, and so these work where not followed by a letter or underscore (use `{...}` if needed, e.g. `xx${@}xx`).
 
+|---|-------|
 |`$variable`|	If the variable name itself starts with a $ then the variable contains a variable name. E.g. If variable `X` contains `A` then `${$X}` is the same as `$A`.|
 |`$`|	Generate the parent PID (deprecated)|
 |`@`|	Generate a timestamp of current directory|
@@ -46,6 +48,7 @@ Immediately after the variable name (and inside `{...}` if present) can be an in
 
 Immediately after the variable name (and inside `{...}`, and after `[...]`, if present) can be a number of suffixes.
 
+|---|-------|
 |`:h'|	Head of path, removes all after last slash.|
 |`:t'|	Tail of path, only from after last slash (unchanged if no slash).|
 |`:e'|	Extension. Everything after final dot if after last slash. Blank if no dot after last slash.|
