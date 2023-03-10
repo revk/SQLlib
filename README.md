@@ -1,16 +1,47 @@
-# SQLlib
-Wrapper / library for mysql, including sql query formatting, functions for safe operation that exit if unexpected failure, and functions to access results of queries by named field rather than row[n].
+# SQL wrapper library
 
-The underlying mysql client functions need some help.
+This library provides functions to make SQL access from C safer and simpler.
 
-This wrapper provides a range of functions - some just access to the mysql functions and some provide a lot of extra functionailty.
+See https://github.com/revk/SQLlib/blob/master/sqllib.md for details of the library.
 
-The main ones are variations of the simple sql_query, which can be "safe" meaning it aborts on error.
+Functions are provided for safe construction of SQL queries.
 
-This allows things like
+## Examples
 
-sql_safe_query_f(&sql,"INSERT INTO \`test\` SET \`f1\`=%#s",stringvar);
+### Scanning a table
 
-This would create a queries, properly quoting and escaping the value of stringvar, even using NULL if it is null, and then free the allocated string. If there is an error the program exists.
+Doing a query, getting (stored) results, and doing some updates while scanning the result.
 
-There are also debug settings allowing you to see every query that is done, to stderr or syslog.
+```
+SQL_RES *att = sql_safe_query_store_f (sqlp, "SELECT * FROM `CalendarAttendee` WHERE `ServerId`=%lld", serverid);
+while (sql_fetch_row (att))
+{
+   if(sometestmeaningchangefield())
+     sql_safe_query_f(&sql,"UPDATE `CalendarAttendee` SET `MeetingStatus`=`MeetingStatus`|4 WHERE `ID`=%#s",sql_colz (att, "ID")));
+}
+sql_free_result (att);
+```
+
+### Making an update
+
+Constructing an UPDATE with optional fields, and doing it if any fields actually added.
+
+```
+sql_s_t q={0};
+sql_sprintf(&q,"UPDATE `mytable` SET ");
+if(s1) sql_sprintf(&q,"`v1`=%#s,",s1);
+if(d2>=0) sql_sprintf(&q,"`d2`=%d,",d2);
+if(sql_back_s(&q) == ',')
+{
+ sql_sprintf(&q, " WHERE `ID`=%d",id);
+ sql_safe_query_s(&sql,&q);
+}
+else sql_free_s(&q); // No updates
+```
+
+# SQL shell variable expansion
+
+This library and command allows for SQL query expansion from environment variables.
+
+See https://github.com/revk/SQLlib/blob/master/sqlexpand.md for details of the command and library.
+
