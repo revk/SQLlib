@@ -148,6 +148,9 @@ int main(int argc, const char *argv[])
          unsetenv(values[n]);   // using default even if exists, so not taken from environment
    }
 
+        if (!sqlconf)
+        sqlconf = getenv("SQL_CNF_FILE");
+
    // connect to database
    sql_real_connect(&sql, sqlhost, sqluser, sqlpass, sqldatabase, sqlport, NULL, 0, 1, sqlconf);
    sql_transaction(&sql);
