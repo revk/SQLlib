@@ -353,7 +353,7 @@ int main(int argc, const char *argv[])
    const char *defcsvcomma = csvcomma;
    poptContext popt;            // context for parsing command-line options
    const struct poptOption optionsTable[] = {
-      { "sql-conf", 0, POPT_ARGFLAG_SHOW_DEFAULT | POPT_ARG_STRING, &sqlconf, 0, "Client config file", "filename" },
+      { "sql-conf", 0, POPT_ARGFLAG_SHOW_DEFAULT | POPT_ARG_STRING, &sqlconf, 0, "Client config file ($SQL_CNF_FILE)", "filename" },
       { "sql-host", 'h', POPT_ARG_STRING, &sqlhost, 0, "SQL server host", "hostname/ip" },
       { "sql-port", 0, POPT_ARG_INT, &sqlport, 0, "SQL server port", "port" },
       {
@@ -457,6 +457,9 @@ int main(int argc, const char *argv[])
       errx(1, "Don't specify database for --expand");
    if (expand && noexpand)
       errx(1, "Make your bloody mind up");
+
+   if (!sqlconf)
+      sqlconf = getenv("SQL_CNF_FILE");
 
    if (!expand)
       sql_real_connect(&sql, sqlhost, sqluser, sqlpass, sqldatabase, sqlport, 0, 0, 1, sqlconf);
