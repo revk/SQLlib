@@ -807,8 +807,8 @@ main (int argc, const char *argv[])
    int dozero = 0;
    int doblank = 0;
    const char *query = NULL;
+   poptContext optCon;          // context for parsing command-line options
    {                            // POPT
-      poptContext optCon;       // context for parsing command-line options
       const struct poptOption optionsTable[] = {
          {"stdin", 0, POPT_ARG_NONE, &dostdin, 0, "Allow stdin ($-)"},
          {"file", 0, POPT_ARG_NONE, &dofile, 0, "Allow file ($@)"},
@@ -836,7 +836,6 @@ main (int argc, const char *argv[])
          poptPrintUsage (optCon, stderr, 0);
          return -1;
       }
-      poptFreeContext (optCon);
    }
 
    unsigned int flags = 0;
@@ -859,6 +858,7 @@ main (int argc, const char *argv[])
    if (e)
       warnx ("Warning SQL expansion: %s\n[%s]\n[%s]\n[%s]", e, query, expanded, p);
    free (expanded);
+   poptFreeContext (optCon);
    return 0;
 }
 #endif
