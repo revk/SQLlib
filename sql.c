@@ -50,6 +50,7 @@ int reportid = 0;
 int reportchanges = 0;
 int statuschanges = 0;
 int ret = 0;
+unsigned long long changed = 0;
 int linesplit = 0;
 int safe = 0;
 int unsafe = 0;
@@ -329,8 +330,7 @@ dosql (const char *origquery)
             else if (*uuid)
                printf ("%s\n", uuid);
          }
-         if (reportchanges)
-            printf ("%llu\n", sql_affected_rows (&sql));
+         changed += sql_affected_rows (&sql);
          if (statuschanges && !sql_affected_rows (&sql))
             ret++;
       }
@@ -514,5 +514,7 @@ main (int argc, const char *argv[])
       xml = xml_tree_delete (xml);
    }
 #endif
+   if (reportchanges)
+      printf ("%llu\n", changed);
    return ret;
 }
