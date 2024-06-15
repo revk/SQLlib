@@ -2,6 +2,7 @@
 // This tool is specifically to allow $variable expansion in an SQL query in a safe way with correct quoting.
 // Copyright ©2022 Andrews & Arnold Ltd, Adrian Kennard
 // This software is provided under the terms of the GPL - see LICENSE file for more details
+#define OPENSSL_API_COMPAT      0x10100000L
 
 #include <stdio.h>
 #include <string.h>
