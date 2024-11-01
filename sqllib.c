@@ -181,7 +181,7 @@ sql_safe_select_db (SQL * sql, const char *db)
          syslog (sqlsyslogerror, "USE %s", sql_error (sql));
       if (!sqldebug)
          fprintf (stderr, "SQL failed: %s\nUSE %s\n", sql_error (sql), db);
-      errx (201, "SQL query failed");
+      errx (201, "SQL select db failed");
    }
    return e;
 }
