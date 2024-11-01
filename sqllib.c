@@ -223,7 +223,7 @@ sql_safe_query_use (SQL * sql, char *q)
    {
       if (!sqldebug)
          fprintf (stderr, "%s\n", q);
-      errx (202, "SQL query no result");
+      errx (202, "SQL query use, no result (%s)",q);
    }
    return r;
 }
@@ -238,14 +238,14 @@ sql_safe_query_store (SQL * sql, char *q)
    {
       if (!sqldebug)
          fprintf (stderr, "SQL failed (%s): %s\n%s\n", sql->db, sql_error (sql), q);
-      errx (201, "SQL query failed");
+      errx (201, "SQL query store, failed");
    }
    r = sql_store_result (sql);
    if (!r)
    {
       if (!sqldebug)
          fprintf (stderr, "%s\n", q);
-      errx (202, "SQL query no result");
+      errx (202, "SQL query store, no result (%s)",q);
    } else if (sqldebug)
       fprintf (stderr, "(%llu row%s)\n", sql_num_rows (r), sql_num_rows (r) == 1 ? "" : "s");
    return r;
