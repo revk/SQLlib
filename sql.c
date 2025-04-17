@@ -368,11 +368,13 @@ int
 main (int argc, const char *argv[])
 {
 #ifndef NOXML
+#ifdef	NOJSON
    const char *defxmlroot = xmlroot;
    const char *defxmlinfo = xmlinfo;
    const char *defxmlcol = xmlcol;
    const char *defxmlresult = xmlresult;
    const char *defxmlrow = xmlrow;
+#endif
 #endif
    const char *defcsvsol = csvsol;
    const char *defcsveol = csveol;
