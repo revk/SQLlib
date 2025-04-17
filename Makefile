@@ -21,14 +21,20 @@ stringdecimal/stringdecimal.o:
 	git submodule update --recursive
 	make -C stringdecimal
 
+AJL/ajl.c:
+	git submodule update --init AJL
+
+AJL/ajl.o: AJL/ajl.c AJL
+	make -C AJL ajl.o
+
 sqllib.o: sqllib.c sqllib.h Makefile
 	gcc -g -O -c -o $@ $< -fPIC ${OPTS} -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER}
 
 sqllibsd.o: sqllib.c sqllib.h Makefile stringdecimal/stringdecimal.o
 	gcc -g -O -c -o $@ $< -fPIC ${OPTS} -DLIB ${SQLINC} -DMYSQL_VERSION=${SQLVER} -DSTRINGDECIMAL
 
-sql: sql.c sqllibsd.o sqllib.h sqlexpand.o sqlexpand.h stringdecimal/stringdecimal.o
-	gcc -g -O -o $@ $< -fPIC ${OPTS} -DNOXML ${SQLINC} ${SQLLIB} sqllibsd.o sqlexpand.o stringdecimal/stringdecimal.o -lcrypto -luuid
+sql: sql.c sqllibsd.o sqllib.h sqlexpand.o sqlexpand.h stringdecimal/stringdecimal.o AJL/ajl.o
+	gcc -g -O -o $@ $< -fPIC ${OPTS} -DNOXML ${SQLINC} ${SQLLIB} sqllibsd.o sqlexpand.o stringdecimal/stringdecimal.o AJL/ajl.o -lcrypto -luuid -IAJL
 
 sqlwrite: sqlwrite.c sqllibsd.o sqllib.h stringdecimal/stringdecimal.o
 	gcc -g -O -o $@ $< -fPIC ${OPTS} ${SQLINC} ${SQLLIB} sqllibsd.o stringdecimal/stringdecimal.o

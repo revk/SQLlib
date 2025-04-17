@@ -21,6 +21,9 @@
 #ifndef	NOXML
 #include "axl.h"
 #endif
+#ifndef	NOJSON
+#include "ajl.h"
+#endif
 
 const char *sqlconf = NULL;
 const char *sqlhost = NULL;
@@ -56,6 +59,9 @@ int safe = 0;
 int unsafe = 0;
 #ifndef	NOXML
 int xmlout = 0;
+#endif
+#ifndef	NOJSON
+j_t json = NULL;
 #endif
 int jsonout = 0;
 int csvout = 0;
@@ -134,6 +140,24 @@ dosql (const char *origquery)
             fprintf (stderr, "Type\tLen\tName\n");
             for (f = 0; f < fields; f++)
                fprintf (stderr, "%d\t%lu\t%s\t", field[f].type, field[f].length, field[f].name);
+         }
+#endif
+#ifndef		NOJSON
+         if (json)
+         {
+            while ((row = sql_fetch_row (res)))
+            {
+               j_t j = j_append_object (json);
+               for (f = 0; f < fields; f++)
+               {
+                  if (!row[f])
+                     j_store_null (j, field[f].name);
+                  else if (IS_NUM (field[f].type) && field[f].type != FIELD_TYPE_TIMESTAMP)
+                     j_store_literal (j, field[f].name, row[f]);
+                  else
+                     j_store_string (j, field[f].name, row[f]);
+               }
+            }
          }
 #endif
 #ifndef NOXML
@@ -379,11 +403,15 @@ main (int argc, const char *argv[])
 #ifndef NOXML
       {"XML", 0, POPT_ARGFLAG_DOC_HIDDEN | POPT_ARG_NONE, &xmlout, 0, "Output in XML", 0},
       {"xml", 'X', POPT_ARG_NONE, &xmlout, 0, "Output in XML", 0},
+#ifdef	NOJSON
+      {"json", 0, POPT_ARG_NONE, &jsonout, 0, "Output in JSON", 0},
+#endif
 #endif
       {"csv", 0, POPT_ARG_NONE, &csvout, 0, "Output in CSV", 0},
+#ifndef	NOJSON
       {"json", 0, POPT_ARG_NONE, &jsonout, 0, "Output in JSON", 0},
+#endif
 #ifndef NOXML
-
       {"xml-root", 0, POPT_ARGFLAG_SHOW_DEFAULT | POPT_ARG_STRING, &xmlroot, 0, "Label for root object", 0},
       {"xml-info", 0, POPT_ARG_STRING, &xmlinfo, 0, "Label for info object (column type info)", 0},
       {
@@ -416,6 +444,7 @@ main (int argc, const char *argv[])
    if (safe && unsafe)
       errx (1, "Do the safety dance");
 #ifndef NOXML
+#ifdef	NOJSON
    if (jsonout)
    {                            // Alternative defaults for json
       if (defxmlroot == xmlroot)
@@ -430,6 +459,7 @@ main (int argc, const char *argv[])
          xmlcol = "";
    }
 #endif
+#endif
    if (jsarray)
    {                            // Alternative defaults for jsarray
       csvout = 1;
@@ -443,11 +473,19 @@ main (int argc, const char *argv[])
          csvcomma = ",";
    }
 #ifndef NOXML
-   if (xmlout || jsonout)
+   if (xmlout
+#ifdef	NOJSON
+       || jsonout
+#endif
+      )
    {
       xml = xml_tree_new (NULL);
       xml_tree_add_root (xml, xmlroot);
    }
+#endif
+#ifndef	NOJSON
+   if (jsonout)
+      json = j_create ();
 #endif
 
    if (!expand && !sqldatabase && poptPeekArg (popt))
@@ -509,9 +547,18 @@ main (int argc, const char *argv[])
       }
       if (xmlout)
          xml_write (stdout, xml);
+#ifdef	NOJSON
       if (jsonout)
          xml_write_json (stdout, xml);
+#endif
       xml = xml_tree_delete (xml);
+   }
+#endif
+#ifndef	NOJSON
+   if (json)
+   {
+      j_err (j_write_pretty (json, stdout));
+      j_delete (&json);
    }
 #endif
    if (reportchanges)
