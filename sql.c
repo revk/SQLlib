@@ -373,13 +373,11 @@ int
 main (int argc, const char *argv[])
 {
 #ifndef NOXML
-#ifdef	NOJSON
    const char *defxmlroot = xmlroot;
    const char *defxmlinfo = xmlinfo;
    const char *defxmlcol = xmlcol;
    const char *defxmlresult = xmlresult;
    const char *defxmlrow = xmlrow;
-#endif
 #endif
    const char *defcsvsol = csvsol;
    const char *defcsveol = csveol;
@@ -451,7 +449,6 @@ main (int argc, const char *argv[])
    if (safe && unsafe)
       errx (1, "Do the safety dance");
 #ifndef NOXML
-#ifdef	NOJSON
    if (jsonout)
    {                            // Alternative defaults for json
       if (defxmlroot == xmlroot)
@@ -465,7 +462,6 @@ main (int argc, const char *argv[])
       if (defxmlcol == xmlcol)
          xmlcol = "";
    }
-#endif
 #endif
    if (jsarray)
    {                            // Alternative defaults for jsarray
