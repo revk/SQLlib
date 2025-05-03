@@ -145,9 +145,14 @@ dosql (const char *origquery)
 #ifndef		NOJSON
          if (json)
          {
+            j_t a = json;
+#ifndef NOXML
+            if (xmlrow && *xmlrow)
+               a = j_store_array (json, xmlrow);
+#endif
             while ((row = sql_fetch_row (res)))
             {
-               j_t j = j_append_object (json);
+               j_t j = j_append_object (a);
                for (f = 0; f < fields; f++)
                {
                   if (!row[f])

@@ -1,6 +1,7 @@
 *~
 *.o
 sql
+sqlx
 sqlwrite
 sqledit
 sqlexpand
