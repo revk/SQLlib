@@ -441,7 +441,7 @@ main (int argc, const char *argv[])
             } else
             {
                int l = fields[f].length;
-               if (l == 65535)
+               if (l >= 65535)
                {
                   printf ("<textarea cols='50' rows='10'");
                   printf (" id='E%d'", f);
