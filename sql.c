@@ -148,7 +148,10 @@ dosql (const char *origquery)
             j_t a = json;
 #ifndef NOXML
             if (xmlresult && *xmlresult)
+	    {
                a = j_store_array (a, xmlresult);
+               a = j_store_array (a, xmlresult);
+	    }
             if (xmlrow && *xmlrow)
             {
                if (xmlresult && *xmlresult)
