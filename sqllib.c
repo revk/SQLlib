@@ -162,7 +162,9 @@ sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *p
    } else
    {
       sql_options (s, MYSQL_SET_CHARSET_NAME, "utf8mb4");       // Seems to be needed after connect?
-      sql_set_character_set (s, "utf8mb4");     // Seems needed fro mariadb
+      sql_set_character_set (s, "utf8mb4");     // Seems needed for mariadb
+     if(getenv("REMOTE_USER")) sql_safe_query_f (sql, "SET @REMOTE_USER=%#s",getenv("REMOTE_USER"));
+     if(getenv("REMOTE_ADDR")) sql_safe_query_f (sql, "SET @REMOTE_ADDR=%#s",getenv("REMOTE_ADDR"));
    }
    return s;
 }
