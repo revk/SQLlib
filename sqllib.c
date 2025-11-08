@@ -28,7 +28,7 @@ const char *sqlcnf = "~/.my.cnf";       // Default
 const char *capem = "/etc/mysql/cacert.pem";
 
 SQL *
-sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *passwd, const char *db, unsigned int port,
+sql_real_connect (MYSQL *sql, const char *host, const char *user, const char *passwd, const char *db, unsigned int port,
                   const char *unix_socket, unsigned long client_flag, char safe, const char *mycnf)
 {                               // Connect but check config file
    const char *sslca = NULL;
@@ -163,14 +163,17 @@ sql_real_connect (MYSQL * sql, const char *host, const char *user, const char *p
    {
       sql_options (s, MYSQL_SET_CHARSET_NAME, "utf8mb4");       // Seems to be needed after connect?
       sql_set_character_set (s, "utf8mb4");     // Seems needed for mariadb
-     if(getenv("REMOTE_USER")) sql_safe_query_f (sql, "SET @REMOTE_USER=%#s",getenv("REMOTE_USER"));
-     if(getenv("REMOTE_ADDR")) sql_safe_query_f (sql, "SET @REMOTE_ADDR=%#s",getenv("REMOTE_ADDR"));
+      const char *c;
+      if ((c = getenv ("REMOTE_USER")))
+         sql_safe_query_f (sql, "SET @REMOTE_USER=%#s", c);
+      if ((c = getenv ("REMOTE_ADDR")))
+         sql_safe_query_f (sql, "SET @REMOTE_ADDR=%#s", c);
    }
    return s;
 }
 
 int
-sql_safe_select_db (SQL * sql, const char *db)
+sql_safe_select_db (SQL *sql, const char *db)
 {
    if (sqlsyslogquery >= 0)
       syslog (sqlsyslogquery, "USE %s", db);
@@ -189,7 +192,7 @@ sql_safe_select_db (SQL * sql, const char *db)
 }
 
 void
-sql_safe_query (SQL * sql, char *q)
+sql_safe_query (SQL *sql, char *q)
 {
    if (!q)
       return;
@@ -214,7 +217,7 @@ sql_safe_query (SQL * sql, char *q)
 }
 
 SQL_RES *
-sql_safe_query_use (SQL * sql, char *q)
+sql_safe_query_use (SQL *sql, char *q)
 {
    if (!q)
       return NULL;
@@ -231,7 +234,7 @@ sql_safe_query_use (SQL * sql, char *q)
 }
 
 SQL_RES *
-sql_safe_query_store (SQL * sql, char *q)
+sql_safe_query_store (SQL *sql, char *q)
 {
    if (!q)
       return NULL;
@@ -254,7 +257,7 @@ sql_safe_query_store (SQL * sql, char *q)
 }
 
 SQL_RES *
-sql_query_use (SQL * sql, char *q)
+sql_query_use (SQL *sql, char *q)
 {
    if (!q)
       return NULL;
@@ -264,7 +267,7 @@ sql_query_use (SQL * sql, char *q)
 }
 
 SQL_RES *
-sql_query_store (SQL * sql, char *q)
+sql_query_store (SQL *sql, char *q)
 {
    if (!q)
       return NULL;
@@ -274,7 +277,7 @@ sql_query_store (SQL * sql, char *q)
 }
 
 int
-sql_query (SQL * sql, char *q)
+sql_query (SQL *sql, char *q)
 {
    if (!q)
       return 0;
@@ -302,7 +305,7 @@ sql_query (SQL * sql, char *q)
 }
 
 char *
-sql_close_s (sql_s_t * q)
+sql_close_s (sql_s_t *q)
 {                               // Close a string - return string (malloc'd)
    if (!q)
       return NULL;
@@ -315,7 +318,7 @@ sql_close_s (sql_s_t * q)
 }
 
 size_t
-sql_len_s (sql_s_t * q)
+sql_len_s (sql_s_t *q)
 {
    if (!q)
       return 0;
@@ -325,7 +328,7 @@ sql_len_s (sql_s_t * q)
 }
 
 void
-sql_open_s (sql_s_t * q)
+sql_open_s (sql_s_t *q)
 {                               // Open (or continue) a string
    if (!q)
       errx (1, "sql_s_t NULL");
@@ -341,7 +344,7 @@ sql_open_s (sql_s_t * q)
 }
 
 void
-sql_free_s (sql_s_t * q)
+sql_free_s (sql_s_t *q)
 {                               // Free string
    sql_close_s (q);
    free (q->string);
@@ -350,7 +353,7 @@ sql_free_s (sql_s_t * q)
 }
 
 char
-sql_back_s (sql_s_t * q)
+sql_back_s (sql_s_t *q)
 {                               // Remove last character and return it, don't close
    if (!sql_len_s (q))
       return 0;
@@ -363,7 +366,7 @@ sql_back_s (sql_s_t * q)
 }
 
 void
-sql_seek_s (sql_s_t * q, size_t pos)
+sql_seek_s (sql_s_t *q, size_t pos)
 {                               // Seek to a position
    if (!sql_len_s (q))
       return;
@@ -375,14 +378,14 @@ sql_seek_s (sql_s_t * q, size_t pos)
 
 // Freeing versions for use with malloc'd queries (e.g. from sql_printf...
 void
-sql_safe_query_s (SQL * sql, sql_s_t * q)
+sql_safe_query_s (SQL *sql, sql_s_t *q)
 {
    sql_safe_query (sql, sql_close_s (q));
    sql_free_s (q);
 }
 
 SQL_RES *
-sql_safe_query_use_s (SQL * sql, sql_s_t * q)
+sql_safe_query_use_s (SQL *sql, sql_s_t *q)
 {
    SQL_RES *r = sql_safe_query_use (sql, sql_close_s (q));
    sql_free_s (q);
@@ -390,7 +393,7 @@ sql_safe_query_use_s (SQL * sql, sql_s_t * q)
 }
 
 SQL_RES *
-sql_safe_query_store_s (SQL * sql, sql_s_t * q)
+sql_safe_query_store_s (SQL *sql, sql_s_t *q)
 {
    SQL_RES *r = sql_safe_query_store (sql, sql_close_s (q));
    sql_free_s (q);
@@ -398,7 +401,7 @@ sql_safe_query_store_s (SQL * sql, sql_s_t * q)
 }
 
 SQL_RES *
-sql_query_use_s (SQL * sql, sql_s_t * q)
+sql_query_use_s (SQL *sql, sql_s_t *q)
 {
    SQL_RES *r = sql_query_use (sql, sql_close_s (q));
    sql_free_s (q);
@@ -406,7 +409,7 @@ sql_query_use_s (SQL * sql, sql_s_t * q)
 }
 
 SQL_RES *
-sql_query_store_s (SQL * sql, sql_s_t * q)
+sql_query_store_s (SQL *sql, sql_s_t *q)
 {
    SQL_RES *r = sql_query_store (sql, sql_close_s (q));
    sql_free_s (q);
@@ -414,7 +417,7 @@ sql_query_store_s (SQL * sql, sql_s_t * q)
 }
 
 int
-sql_query_s (SQL * sql, sql_s_t * q)
+sql_query_s (SQL *sql, sql_s_t *q)
 {
    int r = sql_query (sql, sql_close_s (q));
    sql_free_s (q);
@@ -422,7 +425,7 @@ sql_query_s (SQL * sql, sql_s_t * q)
 }
 
 void
-sql_safe_query_free (SQL * sql, char *q)
+sql_safe_query_free (SQL *sql, char *q)
 {
    if (!q)
       return;
@@ -431,7 +434,7 @@ sql_safe_query_free (SQL * sql, char *q)
 }
 
 SQL_RES *
-sql_safe_query_use_free (SQL * sql, char *q)
+sql_safe_query_use_free (SQL *sql, char *q)
 {
    if (!q)
       return 0;
@@ -441,7 +444,7 @@ sql_safe_query_use_free (SQL * sql, char *q)
 }
 
 SQL_RES *
-sql_safe_query_store_free (SQL * sql, char *q)
+sql_safe_query_store_free (SQL *sql, char *q)
 {
    if (!q)
       return 0;
@@ -451,7 +454,7 @@ sql_safe_query_store_free (SQL * sql, char *q)
 }
 
 SQL_RES *
-sql_query_use_free (SQL * sql, char *q)
+sql_query_use_free (SQL *sql, char *q)
 {
    if (!q)
       return 0;
@@ -461,7 +464,7 @@ sql_query_use_free (SQL * sql, char *q)
 }
 
 SQL_RES *
-sql_query_store_free (SQL * sql, char *q)
+sql_query_store_free (SQL *sql, char *q)
 {
    if (!q)
       return 0;
@@ -471,7 +474,7 @@ sql_query_store_free (SQL * sql, char *q)
 }
 
 int
-sql_query_free (SQL * sql, char *q)
+sql_query_free (SQL *sql, char *q)
 {
    if (!q)
       return 0;
@@ -481,7 +484,7 @@ sql_query_free (SQL * sql, char *q)
 }
 
 char *
-sql_safe_query_value (SQL * sql, char *q)
+sql_safe_query_value (SQL *sql, char *q)
 {                               // does query, returns strdup of first column of first row of result, or NULL
    if (!q)
       return NULL;
@@ -495,7 +498,7 @@ sql_safe_query_value (SQL * sql, char *q)
 }
 
 char *
-sql_safe_query_value_free (SQL * sql, char *q)
+sql_safe_query_value_free (SQL *sql, char *q)
 {                               // does query, returns strdup of first column of first row of result, or NULL
    if (!q)
       return NULL;
@@ -514,7 +517,7 @@ sql_safe_query_value_free (SQL * sql, char *q)
 // B    Bool, makes 'true' or 'false' based in int argument. With # makes quoted "Y" or "N"
 
 void
-sql_vsprintf (sql_s_t * s, const char *f, va_list ap)
+sql_vsprintf (sql_s_t *s, const char *f, va_list ap)
 {                               // Formatted print, append to query string
    if (!s)
       return;
@@ -862,7 +865,7 @@ sql_vsprintf (sql_s_t * s, const char *f, va_list ap)
 }
 
 void
-sql_sprintf (sql_s_t * s, const char *f, ...)
+sql_sprintf (sql_s_t *s, const char *f, ...)
 {                               // Formatted print, append to query string
    va_list ap;
    va_start (ap, f);
@@ -882,7 +885,7 @@ sql_printf (char *f, ...)
 }
 
 int
-sql_colnum (SQL_RES * res, const char *fieldname)
+sql_colnum (SQL_RES *res, const char *fieldname)
 {                               // Return row number for field name, -1 for not available. Case insensitive
    int n;
    if (!res || !res->fields)
@@ -894,13 +897,13 @@ sql_colnum (SQL_RES * res, const char *fieldname)
 }
 
 const char *
-sql_colname (SQL_RES * res, int c)
+sql_colname (SQL_RES *res, int c)
 {
    return res->fields[c].name;
 }
 
 char *
-sql_col (SQL_RES * res, const char *fieldname)
+sql_col (SQL_RES *res, const char *fieldname)
 {                               // Return current row value for field name, NULL for not available. Case insensitive
    if (!res || !res->current_row)
       return NULL;
@@ -911,7 +914,7 @@ sql_col (SQL_RES * res, const char *fieldname)
 }
 
 SQL_FIELD *
-sql_col_format (SQL_RES * res, const char *fieldname)
+sql_col_format (SQL_RES *res, const char *fieldname)
 {                               // Return data type for column by name. Case insensitive
    if (!res || !res->current_row)
       return NULL;
@@ -1004,30 +1007,30 @@ sql_time_z (const char *t, int utc)
 }
 
 void
-sql_transaction (SQL * sql)
+sql_transaction (SQL *sql)
 {
    sql_safe_query (sql, "START TRANSACTION");
 }
 
-int __attribute__((warn_unused_result)) sql_commit (SQL * sql)
+int __attribute__((warn_unused_result)) sql_commit (SQL *sql)
 {
    return sql_query (sql, "COMMIT");
 }
 
 void
-sql_safe_commit (SQL * sql)
+sql_safe_commit (SQL *sql)
 {
    return sql_safe_query (sql, "COMMIT");
 }
 
 void
-sql_safe_rollback (SQL * sql)
+sql_safe_rollback (SQL *sql)
 {
    return sql_safe_query (sql, "ROLLBACK");
 }
 
 int
-sql_field_len (MYSQL_FIELD * f)
+sql_field_len (MYSQL_FIELD *f)
 {                               // Allow for common charset logic
    if (f->charsetnr == 45)
       return f->length / 4;
