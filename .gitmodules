@@ -1,6 +1,6 @@
 [submodule "stringdecimal"]
 	path = stringdecimal
-	url = https://github.com/revk/stringdecimal.git
+	url = https://codeberg.org/RevK/stringdecimal
 [submodule "AJL"]
 	path = AJL
 	url = https://github.com/revk/AJL
