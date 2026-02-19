@@ -3,7 +3,7 @@
 	url = https://codeberg.org/RevK/stringdecimal
 [submodule "AJL"]
 	path = AJL
-	url = https://codeberg.org/RevK/AJK
+	url = https://codeberg.org/RevK/AJL
 [submodule "AXL"]
 	path = AXL
 	url = https://github.com/revk/AXL
